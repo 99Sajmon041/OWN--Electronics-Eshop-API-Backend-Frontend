@@ -34,7 +34,13 @@ public static class WebApplicationBuilderExtensions
             {
                 {
                     new OpenApiSecurityScheme
-                    { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
+                    {
+                        Reference = new OpenApiReference
+                        { 
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer" 
+                        }
+                    },
                     Array.Empty<string>()
                 }
             });
