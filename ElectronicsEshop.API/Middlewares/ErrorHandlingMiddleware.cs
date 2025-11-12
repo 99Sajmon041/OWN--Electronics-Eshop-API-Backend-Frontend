@@ -1,5 +1,7 @@
 ﻿using ElectronicsEshop.Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace ElectronicsEshop.API.Middlewares;
 
@@ -15,7 +17,12 @@ public sealed class ErrorHandlingMiddleware(ILogger<ErrorHandlingMiddleware> log
         {
             ProblemDetails problem;
 
-            switch (ex)
+            if(ex is DbUpdateException dbEx && IsForeignKeyConflict(dbEx))
+            {
+                logger.LogWarning("Conflict (FK) ({TraceId}): {Message}", context.TraceIdentifier, dbEx.Message);
+                problem = Create(409, "Conflict", "Entity is referenced and cannot be deleted.", context);
+            }
+            else switch (ex)
             {
                 case NotFoundException:
                     logger.LogWarning("Not Found ({TraceId}): {Message}", context.TraceIdentifier, ex.Message);
@@ -67,5 +74,13 @@ public sealed class ErrorHandlingMiddleware(ILogger<ErrorHandlingMiddleware> log
         problem.Extensions["traceId"] = ctx.TraceIdentifier;
         if (errors is not null) problem.Extensions["errors"] = errors;
         return problem;
+    }
+
+    private static bool IsForeignKeyConflict(DbUpdateException ex)
+    {
+        if (ex.InnerException is SqlException sql && sql.Number == 547)
+            return true;
+
+        return false;
     }
 }

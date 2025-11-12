@@ -14,7 +14,7 @@ public sealed class UpdateProductCommandHandler(IMapper mapper,
 {
     public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var entity = await productRepository.GetbyIdAsync(request.Id, cancellationToken)
+        var entity = await productRepository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Product), request.Id);
 
         if (!await categoryRepository.Exists(request.Data.CategoryId, cancellationToken))

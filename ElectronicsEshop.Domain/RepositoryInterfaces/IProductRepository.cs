@@ -13,5 +13,5 @@ public interface IProductRepository
     Task DeleteAsync(int id, CancellationToken ct = default);
     Task<bool> ExistsByProductCodeAsync(string productCode, CancellationToken ct);
     Task<Product?> GetByProductCodeAsync(string productCode, CancellationToken ct);
-    Task<Product?> GetbyIdAsync(int id, CancellationToken ct);
+    Task<Product?> GetByIdAsync(int id, CancellationToken ct);
 }

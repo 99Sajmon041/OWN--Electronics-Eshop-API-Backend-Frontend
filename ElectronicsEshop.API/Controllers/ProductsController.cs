@@ -1,5 +1,6 @@
 ﻿using ElectronicsEshop.Application.Common.Pagination;
 using ElectronicsEshop.Application.Products.Commands.CreateProduct;
+using ElectronicsEshop.Application.Products.Commands.DeleteProduct;
 using ElectronicsEshop.Application.Products.Commands.UpdateProduct;
 using ElectronicsEshop.Application.Products.DTOs;
 using ElectronicsEshop.Application.Products.Queries.GetProduct;
@@ -49,6 +50,15 @@ public class ProductsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         await mediator.Send(command, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
+    {
+        await mediator.Send(new DeleteProductCommand(id), ct);
         return NoContent();
     }
 }

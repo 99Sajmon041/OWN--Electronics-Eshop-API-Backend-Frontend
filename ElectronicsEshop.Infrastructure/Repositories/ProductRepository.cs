@@ -99,7 +99,7 @@ public class ProductRepository(AppDbContext db) : IProductRepository
         return entity;
     }
 
-    public async Task<Product?> GetbyIdAsync(int id, CancellationToken ct)
+    public async Task<Product?> GetByIdAsync(int id, CancellationToken ct)
     {
         return await db.Products.FirstOrDefaultAsync(p => p.Id == id, ct);
     }
