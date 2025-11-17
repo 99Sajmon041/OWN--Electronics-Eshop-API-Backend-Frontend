@@ -1,12 +1,12 @@
 ﻿using ElectronicsEshop.API.Extensions;
 using ElectronicsEshop.API.Middlewares;
+using ElectronicsEshop.Application.Abstractions;
 using ElectronicsEshop.Application.Extensions;
 using ElectronicsEshop.Application.Products.Mapping;
-using ElectronicsEshop.Domain.Entities;
+using ElectronicsEshop.Infrastructure.Email;
 using ElectronicsEshop.Infrastructure.Extensions;
 using ElectronicsEshop.Infrastructure.Seeders;
 using FluentValidation.AspNetCore;
-using MediatR;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +20,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(ProductMappingProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(ProductMappingProfile).Assembly); // pro všechny mappery v této Assebly, které dědí z Profile
 
 builder.AddPresentation();
 builder.Services.AddApplication();
@@ -29,8 +29,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
-builder.Services.AddTransient<ErrorHandlingMiddleware>();
-builder.Services.AddTransient<UserLogEnricherMiddleware>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, IEmailService>();
 
 var app = builder.Build();
 
@@ -56,7 +56,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGroup("/api/identity").MapIdentityApi<ApplicationUser>();
 app.MapControllers();
 
 try

@@ -16,8 +16,6 @@ public sealed class GetProductsQueryHandler(
 
     public async Task<PagedResult<ProductListItemDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Získání produktů s parametry: {@Request}", request);
-
         var (entities, total) = await productRepository.GetPagedAsync(
             page: request.Page,
             pageSize: request.PageSize,
@@ -31,6 +29,8 @@ public sealed class GetProductsQueryHandler(
             ct: cancellationToken);
 
         var items = mapper.Map<IReadOnlyList<ProductListItemDto>>(entities);
+
+        logger.LogInformation("Získání produktů s parametry: {@Request}", request);
 
         return new PagedResult<ProductListItemDto>
         {

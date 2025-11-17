@@ -27,12 +27,17 @@ public static class ServiceCollectionExtensions
         services.AddIdentityCore<ApplicationUser>(options =>
         {
             options.User.RequireUniqueEmail = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredUniqueChars = 1;
         })
         .AddRoles<IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddSignInManager()
-        .AddDefaultTokenProviders()
-        .AddApiEndpoints();
+        .AddDefaultTokenProviders();
 
         services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, EshopUserClaimsPrincipalFactory>();
 
@@ -51,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<ICartItemRepository, CartItemRepository>();
+        services.AddScoped<ICartRepository, CartRepository>();
 
         return services;
     }

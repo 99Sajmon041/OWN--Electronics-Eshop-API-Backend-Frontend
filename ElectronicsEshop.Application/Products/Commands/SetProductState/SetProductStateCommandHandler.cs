@@ -6,19 +6,28 @@ using Microsoft.Extensions.Logging;
 
 namespace ElectronicsEshop.Application.Products.Commands.SetProductState;
 
-public sealed class SetProductStateCommandHandler(IProductRepository productRepository,
+public sealed class SetProductStateCommandHandler(
+    IProductRepository productRepository,
     ILogger<SetProductStateCommandHandler> logger) : IRequestHandler<SetProductStateCommand>
 {
     public async Task Handle(SetProductStateCommand request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(request.Id, cancellationToken)
-            ?? throw new NotFoundException(nameof(Product), request.Id);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        logger.LogInformation("Začínám měnit stav produktu s Id {ProductId} na IsActive = {IsActive}.", request.Id,  request.IsActive);
+
+        var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
+
+        if (product is null)
+        {
+            logger.LogWarning("Produkt s Id {ProductId} nebyl nalezen, stav nelze změnit.", request.Id);
+
+            throw new NotFoundException(nameof(Product), request.Id);
+        }
 
         await productRepository.SetStateOfProductAsync(product, request.IsActive, cancellationToken);
-
         string stateOfProduct = request.IsActive ? "aktivní" : "neaktivní";
 
-        logger.LogInformation("Produktu {Productname} s ID: {ProductId} byl nastaven stav jako {StateOfProduct}", 
-            product.Name, product.Id, stateOfProduct);
+        logger.LogInformation("Produktu {ProductName} (Id: {ProductId}) byl úspěšně nastaven stav {StateOfProduct}.", product.Name, product.Id, stateOfProduct);
     }
 }

@@ -20,4 +20,9 @@
     <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApplicationUsers\Commands\Self\" />
+    <Folder Include="ApplicationUsers\Queries\Self\" />
+  </ItemGroup>
+
 </Project>

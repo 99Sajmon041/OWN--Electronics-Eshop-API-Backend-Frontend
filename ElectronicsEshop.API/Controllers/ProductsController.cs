@@ -10,7 +10,6 @@ using ElectronicsEshop.Application.Products.Queries.GetProduct;
 using ElectronicsEshop.Application.Products.Queries.GetProducts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace ElectronicsEshop.API.Controllers;
 
@@ -30,9 +29,9 @@ public class ProductsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ProductDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProductDetailDto>> Get([FromRoute] GetProductQuery query, CancellationToken ct)
+    public async Task<ActionResult<ProductDetailDto>> Get([FromRoute] int id, CancellationToken ct)
     {
-        var result = await mediator.Send(query, ct);
+        var result = await mediator.Send(new GetProductQuery(id), ct);
         return Ok(result);
     }
 

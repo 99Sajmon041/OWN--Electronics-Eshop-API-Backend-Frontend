@@ -1,6 +1,7 @@
-﻿using ElectronicsEshop.Application.User;
-using Microsoft.Extensions.DependencyInjection;
+﻿using ElectronicsEshop.Application.Abstractions;
+using ElectronicsEshop.Application.User;
 using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ElectronicsEshop.Application.Extensions;
 
