@@ -8,7 +8,8 @@ using System.Security.Claims;
 namespace ElectronicsEshop.Infrastructure.Security;
 
 public class EshopUserClaimsPrincipalFactory(UserManager<ApplicationUser> userManager,
-    RoleManager<IdentityRole> roleManager, IOptions<IdentityOptions> options) : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole> (userManager, roleManager, options) 
+    RoleManager<IdentityRole> roleManager,
+    IOptions<IdentityOptions> options) : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole> (userManager, roleManager, options) 
 {
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser applicationUser)
     {

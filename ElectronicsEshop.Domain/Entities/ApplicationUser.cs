@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ElectronicsEshop.Domain.Entities;
 
@@ -11,4 +12,7 @@ public class ApplicationUser : IdentityUser
     public Address Address { get; set; } = default!;
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public Cart Cart { get; set; } = default!;
+
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 }

@@ -1,4 +1,5 @@
 ﻿using ElectronicsEshop.Domain.Entities;
+using ElectronicsEshop.Domain.Enums;
 using ElectronicsEshop.Domain.RepositoryInterfaces;
 using ElectronicsEshop.Infrastructure.Database;
 using ElectronicsEshop.Infrastructure.Options;
@@ -48,7 +49,11 @@ public static class ServiceCollectionExtensions
         })
         .AddBearerToken(IdentityConstants.BearerScheme);
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole(nameof(UserRoles.Admin)));
+            options.AddPolicy(PolicyNames.CanManageProducts, policy => policy.RequireRole(nameof(UserRoles.Admin)));
+        });
 
         services.AddScoped<IDefaultDataSeeder, DefaultDataSeeder>();
         services.AddScoped<IProductRepository, ProductRepository>();

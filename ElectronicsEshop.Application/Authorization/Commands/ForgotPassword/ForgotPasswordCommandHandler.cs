@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-namespace ElectronicsEshop.Application.Account.Commands.ForgotPassword;
+namespace ElectronicsEshop.Application.Authorization.Commands.ForgotPassword;
 
 public class ForgotPasswordCommandHandler(UserManager<ApplicationUser> userManager,
     IEmailService emailService,

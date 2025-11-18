@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-namespace ElectronicsEshop.Application.Account.Commands.ResetPassword;
+namespace ElectronicsEshop.Application.Authorization.Commands.ResetPassword;
 
 public sealed class ResetPasswordCommandHandler(UserManager<ApplicationUser> userManager,
     ILogger<ResetPasswordCommandHandler> logger) : IRequestHandler<ResetPasswordCommand>

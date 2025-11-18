@@ -8,7 +8,9 @@ using ElectronicsEshop.Application.Products.Commands.UpdateProductsStockQty;
 using ElectronicsEshop.Application.Products.DTOs;
 using ElectronicsEshop.Application.Products.Queries.GetProduct;
 using ElectronicsEshop.Application.Products.Queries.GetProducts;
+using ElectronicsEshop.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ElectronicsEshop.API.Controllers;
@@ -17,6 +19,7 @@ namespace ElectronicsEshop.API.Controllers;
 [Route("api/[controller]")]
 public class ProductsController(IMediator mediator) : ControllerBase
 {
+    [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<ProductListItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResult<ProductListItemDto>>> GetAll([FromQuery] GetProductsQuery query, CancellationToken ct)
@@ -25,6 +28,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id:int:min(1)}")]
     [ProducesResponseType(typeof(ProductDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -35,17 +39,20 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand command, CancellationToken ct)
     {
         var id = await mediator.Send(command, ct);
         return CreatedAtAction(nameof(Get), new { id }, null);
     }
 
-    [HttpPut("{id}")]
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [HttpPut("{id:int:min(1)}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -56,7 +63,8 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [HttpDelete("{id:int:min(1)}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
@@ -65,6 +73,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPatch("{id}/discount")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -76,6 +85,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPatch("{id}/stock-qty")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -87,6 +97,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPatch("{id}/active")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

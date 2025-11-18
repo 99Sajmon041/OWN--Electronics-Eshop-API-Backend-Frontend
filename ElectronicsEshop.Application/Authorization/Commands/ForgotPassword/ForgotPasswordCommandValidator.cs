@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ElectronicsEshop.Application.Account.Commands.ForgotPassword;
+namespace ElectronicsEshop.Application.Authorization.Commands.ForgotPassword;
 
 public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>
 {

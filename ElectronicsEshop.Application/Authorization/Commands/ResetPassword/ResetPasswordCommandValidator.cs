@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ElectronicsEshop.Application.Account.Commands.ResetPassword;
+namespace ElectronicsEshop.Application.Authorization.Commands.ResetPassword;
 
 public sealed class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
 {

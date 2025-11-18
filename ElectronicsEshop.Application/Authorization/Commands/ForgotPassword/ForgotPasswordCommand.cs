@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace ElectronicsEshop.Application.Account.Commands.ForgotPassword;
+namespace ElectronicsEshop.Application.Authorization.Commands.ForgotPassword;
 
 public sealed class ForgotPasswordCommand : IRequest
 {

@@ -15,7 +15,7 @@ public sealed class CartRepository(AppDbContext db) : ICartRepository
             CartItems = new List<CartItem>()
         };
 
-        await db.Carts.AddAsync(entity);
+        await db.Carts.AddAsync(entity, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
     }
 }

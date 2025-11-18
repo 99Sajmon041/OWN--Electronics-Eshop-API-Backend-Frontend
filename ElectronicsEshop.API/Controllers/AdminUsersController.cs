@@ -5,13 +5,16 @@ using ElectronicsEshop.Application.ApplicationUsers.DTOs;
 using ElectronicsEshop.Application.ApplicationUsers.Queries.Admin.GetUser;
 using ElectronicsEshop.Application.ApplicationUsers.Queries.Admin.GetUsers;
 using ElectronicsEshop.Application.Common.Pagination;
+using ElectronicsEshop.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ElectronicsEshop.API.Controllers
 {
     [ApiController]
     [Route("api/admin/users")]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     public class AdminUsersController(IMediator mediator) : ControllerBase
     {
         [HttpGet]
