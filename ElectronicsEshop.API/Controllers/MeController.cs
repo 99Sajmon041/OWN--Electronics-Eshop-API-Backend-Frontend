@@ -16,7 +16,8 @@ namespace ElectronicsEshop.API.Controllers
     {
         [HttpGet]
         [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<ApplicationUserDto>> Profile(CancellationToken ct)
         {
             var user = await sender.Send(new GetProfileQuery(), ct);
@@ -25,10 +26,11 @@ namespace ElectronicsEshop.API.Controllers
 
         [HttpPatch("update")]
         [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApplicationUserDto>> Update([FromBody] UpdateProfileCommand command, CancellationToken ct)
         {
             var updatedUser = await sender.Send(command, ct);
@@ -37,10 +39,11 @@ namespace ElectronicsEshop.API.Controllers
 
         [HttpPatch("update-password")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdateUserPasswordCommand command, CancellationToken ct)
         {
             await sender.Send(command, ct);
@@ -49,9 +52,11 @@ namespace ElectronicsEshop.API.Controllers
 
         [HttpDelete("delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Delete(CancellationToken ct)
         {
             await sender.Send(new DeleteUserCommand(), ct);

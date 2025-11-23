@@ -22,6 +22,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<ProductListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedResult<ProductListItemDto>>> GetAll([FromQuery] GetProductsQuery query, CancellationToken ct)
     {
         var result = await mediator.Send(query, ct);
@@ -41,10 +42,12 @@ public class ProductsController(IMediator mediator) : ControllerBase
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] CreateProductCommand command, CancellationToken ct)
     {
         var id = await mediator.Send(command, ct);
@@ -53,9 +56,12 @@ public class ProductsController(IMediator mediator) : ControllerBase
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPut("{id:int:min(1)}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Update([FromBody] UpdateProductCommand command, [FromRoute] int id, CancellationToken ct)
     {
         command.Id = id;
@@ -65,8 +71,11 @@ public class ProductsController(IMediator mediator) : ControllerBase
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpDelete("{id:int:min(1)}")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
     {
         await mediator.Send(new DeleteProductCommand(id), ct);
@@ -74,10 +83,12 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
-    [HttpPatch("{id}/discount")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPatch("{id:int:min(1)}/discount")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateDiscount([FromRoute] int id, [FromBody] UpdateProductDiscountCommand command, CancellationToken ct)
     {
         command.Id = id;
@@ -86,10 +97,12 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
-    [HttpPatch("{id}/stock-qty")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPatch("{id:int:min(1)}/stock-qty")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateStockQty([FromRoute] int id, [FromBody] UpdateProductsStockQtyCommand command, CancellationToken ct)
     {
         command.Id = id;
@@ -98,10 +111,12 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
-    [HttpPatch("{id}/active")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPatch("{id:int:min(1)}/active")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateProductsState([FromRoute] int id, [FromBody] SetProductStateCommand command, CancellationToken ct)
     {
         command.Id = id;

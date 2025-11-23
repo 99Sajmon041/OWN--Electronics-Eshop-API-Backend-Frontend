@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using ElectronicsEshop.Application.Products.Commands.CreateProduct;
-using ElectronicsEshop.Application.Products.Commands.UpdateProduct;
 using ElectronicsEshop.Application.Products.DTOs;
 using ElectronicsEshop.Application.Products.Shared.DTOs;
 using ElectronicsEshop.Domain.Entities;

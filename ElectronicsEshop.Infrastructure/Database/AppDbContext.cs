@@ -35,7 +35,7 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<Applicat
             .IsUnique();
 
         modelBuilder.Entity<Order>()
-            .HasIndex(o => new { o.OrderNumber, o.CreatedAt })
+            .HasIndex(o => new { o.ApplicationUserId, o.CreatedAt })
             .IsUnique();
 
         modelBuilder.Entity<Cart>()

@@ -13,9 +13,10 @@ public sealed class GetProductsQueryHandler(
     IProductRepository productRepository,
     IMapper mapper) : IRequestHandler<GetProductsQuery, PagedResult<ProductListItemDto>>
 {
-
     public async Task<PagedResult<ProductListItemDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var (entities, total) = await productRepository.GetPagedAsync(
             page: request.Page,
             pageSize: request.PageSize,
@@ -24,8 +25,10 @@ public sealed class GetProductsQueryHandler(
             q: request.Q,
             categoryId: request.CategoryId,
             isActive: request.IsActive,
-            priceMin: request.PriceMin, priceMax: request.PriceMax,
-            stockMin: request.StockMin, stockMax: request.StockMax,
+            priceMin: request.PriceMin,
+            priceMax: request.PriceMax,
+            stockMin: request.StockMin,
+            stockMax: request.StockMax,
             ct: cancellationToken);
 
         var items = mapper.Map<IReadOnlyList<ProductListItemDto>>(entities);

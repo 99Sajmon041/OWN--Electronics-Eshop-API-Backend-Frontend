@@ -1,16 +1,15 @@
-﻿using FluentValidation;
+﻿using ElectronicsEshop.Application.Common.Enums;
+using FluentValidation;
 
 namespace ElectronicsEshop.Application.Products.Queries.GetProducts;
 
 public sealed class GetProductsQueryValidator : AbstractValidator<GetProductsQuery>
 {
     private static readonly string[] AllowedSort = ["name", "price", "stockqty", "productcode"];
-    private const int MinPageSize = 1;
-    private const int MaxPageSize = 100;
     public GetProductsQueryValidator()
     {
         RuleFor(x => x.Page).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(MinPageSize, MaxPageSize);
+        RuleFor(x => x.PageSize).InclusiveBetween(PaginationConstants.MinPageSize, PaginationConstants.MaxPageSize);
         RuleFor(x => x.Order).IsInEnum();
         RuleFor(x => x.Q).MaximumLength(200);
 
