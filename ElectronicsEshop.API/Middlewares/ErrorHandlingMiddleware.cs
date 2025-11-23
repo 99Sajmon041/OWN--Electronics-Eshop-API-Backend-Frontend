@@ -49,6 +49,11 @@ public sealed class ErrorHandlingMiddleware(ILogger<ErrorHandlingMiddleware> log
                         problem = Create(409, "Chyba domény", ex.Message, context);
                         break;
 
+                    case ArgumentException :
+                        logger.LogWarning("Neplatný argument ({TraceId}): {Message}", context.TraceIdentifier, ex.Message);
+                        problem = Create(400, "Neplatný vstup", ex.Message, context);
+                        break;
+
                     default:
                         logger.LogError(ex, "Nezpracovaná výjimka ({TraceId})", context.TraceIdentifier);
                         problem = Create(500, "Chyba serveru", "Došlo k neočekávané chybě na serveru.", context);

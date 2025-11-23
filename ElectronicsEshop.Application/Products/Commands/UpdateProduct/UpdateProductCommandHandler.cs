@@ -44,7 +44,12 @@ public sealed class UpdateProductCommandHandler(
             throw new ConflictException(request.Data.ProductCode, nameof(Product));
         }
 
+        var originalImageUrl = entity.ImageUrl;
+
         mapper.Map(request.Data, entity);
+
+        entity.ImageUrl = originalImageUrl;
+
         await productRepository.UpdateAsync(entity, cancellationToken);
 
         logger.LogInformation("Produkt {ProductId}/{ProductCode} byl úspěšně upraven: {ProductName}.", entity.Id, entity.ProductCode, entity.Name);

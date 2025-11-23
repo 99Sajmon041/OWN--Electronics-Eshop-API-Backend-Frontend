@@ -50,6 +50,13 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<Applicat
             .HasIndex(it => new { it.OrderId, it.ProductId })
             .IsUnique();
 
+        modelBuilder.Entity<Product>(e =>
+        {
+            e.Property(p => p.ImageUrl)
+            .IsRequired()
+            .HasMaxLength(256);
+        });
+            
 
         modelBuilder.Entity<Order>()
             .HasMany(o => o.OrderItems)

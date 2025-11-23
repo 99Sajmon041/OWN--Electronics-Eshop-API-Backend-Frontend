@@ -27,4 +27,8 @@
     <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
     <ProjectReference Include="..\ElectronicsEshop.Infrastructure\ElectronicsEshop.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
 </Project>

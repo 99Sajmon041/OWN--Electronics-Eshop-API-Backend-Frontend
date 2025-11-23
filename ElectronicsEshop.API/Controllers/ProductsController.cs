@@ -1,9 +1,12 @@
-﻿using ElectronicsEshop.Application.Common.Pagination;
+﻿using ElectronicsEshop.API.Interfaces;
+using ElectronicsEshop.API.Requests.Product;
+using ElectronicsEshop.Application.Common.Pagination;
 using ElectronicsEshop.Application.Products.Commands.CreateProduct;
 using ElectronicsEshop.Application.Products.Commands.DeleteProduct;
 using ElectronicsEshop.Application.Products.Commands.SetProductState;
 using ElectronicsEshop.Application.Products.Commands.UpdateProduct;
 using ElectronicsEshop.Application.Products.Commands.UpdateProductDiscount;
+using ElectronicsEshop.Application.Products.Commands.UpdateProductImage;
 using ElectronicsEshop.Application.Products.Commands.UpdateProductsStockQty;
 using ElectronicsEshop.Application.Products.DTOs;
 using ElectronicsEshop.Application.Products.Queries.GetProduct;
@@ -17,7 +20,7 @@ namespace ElectronicsEshop.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IMediator mediator) : ControllerBase
+public class ProductsController(IMediator mediator, IProductImageService imageService) : ControllerBase
 {
     [AllowAnonymous]
     [HttpGet]
@@ -42,14 +45,23 @@ public class ProductsController(IMediator mediator) : ControllerBase
 
     [Authorize(Policy = PolicyNames.CanManageProducts)]
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Create([FromBody] CreateProductCommand command, CancellationToken ct)
+    public async Task<IActionResult> Create([FromForm] CreateProductRequest request, CancellationToken ct)
     {
+        var imageUrl = await imageService.SaveImageAsync(request.ImageFile, ct);
+        request.Data.ImageUrl = imageUrl;
+
+        var command = new CreateProductCommand
+        {
+            Data = request.Data 
+        };
+
         var id = await mediator.Send(command, ct);
         return CreatedAtAction(nameof(Get), new { id }, null);
     }
@@ -62,7 +74,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Update([FromBody] UpdateProductCommand command, [FromRoute] int id, CancellationToken ct)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateProductCommand command, CancellationToken ct)
     {
         command.Id = id;
         await mediator.Send(command, ct);
@@ -78,7 +90,9 @@ public class ProductsController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
     {
-        await mediator.Send(new DeleteProductCommand(id), ct);
+        var imageUrl = await mediator.Send(new DeleteProductCommand(id), ct);
+        await imageService.DeleteImageAsync(imageUrl, ct);
+
         return NoContent();
     }
 
@@ -121,6 +135,32 @@ public class ProductsController(IMediator mediator) : ControllerBase
     {
         command.Id = id;
         await mediator.Send(command, ct);
+        return NoContent();
+    }
+
+    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [HttpPatch("{id:int:min(1)}/image")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UpdateImage([FromRoute] int id, [FromForm] UpdateProductImageRequest  request, CancellationToken ct)
+    {
+        var newImageurl = await imageService.SaveImageAsync(request.ImageFile, ct);
+
+        var command = new UpdateProductImageCommand
+        {
+            Id = id,
+            ImageUrl = newImageurl
+        };
+
+        var oldImageUrl = await mediator.Send(command, ct);
+
+        if (!string.Equals(oldImageUrl, newImageurl, StringComparison.OrdinalIgnoreCase))
+            await imageService.DeleteImageAsync(oldImageUrl, ct);
+
         return NoContent();
     }
 }

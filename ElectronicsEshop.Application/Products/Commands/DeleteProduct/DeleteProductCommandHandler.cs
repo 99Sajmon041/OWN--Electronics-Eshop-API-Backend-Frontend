@@ -10,10 +10,12 @@ public sealed class DeleteProductCommandHandler(
     ILogger<DeleteProductCommandHandler> logger,
     IProductRepository productRepository,
     IOrderItemRepository orderItemRepository,
-    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteProductCommand>
+    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteProductCommand, string>
 {
-    public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+    public async Task<string> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         logger.LogInformation("Začínám mazat produkt s Id {ProductId}.", request.Id);
 
         var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
@@ -37,8 +39,12 @@ public sealed class DeleteProductCommandHandler(
             throw new DomainException("Produkt nelze smazat – mají ho uživatelé v košíku.");
         }
 
+        var imageUrl = product.ImageUrl;
+
         await productRepository.DeleteAsync(request.Id, cancellationToken);
 
         logger.LogInformation("Produkt {ProductId} ({ProductName}) byl odstraněn.", product.Id, product.Name);
+
+        return imageUrl;
     }
 }

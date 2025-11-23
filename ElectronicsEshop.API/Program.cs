@@ -1,5 +1,7 @@
 ﻿using ElectronicsEshop.API.Extensions;
+using ElectronicsEshop.API.Interfaces;
 using ElectronicsEshop.API.Middlewares;
+using ElectronicsEshop.API.Services;
 using ElectronicsEshop.Application.Abstractions;
 using ElectronicsEshop.Application.Extensions;
 using ElectronicsEshop.Application.Products.Mapping;
@@ -27,6 +29,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
@@ -47,6 +50,7 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<UserLogEnricherMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSerilogRequestLogging();
+app.UseStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
