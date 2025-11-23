@@ -17,4 +17,5 @@ public interface IProductRepository
     Task UpdateDiscountAsync(Product product, decimal value, CancellationToken ct);
     Task AddStockQtyAsync(Product product, int amount, CancellationToken ct);
     Task SetStateOfProductAsync(Product product, bool isActive, CancellationToken ct);
+    Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct);
 }

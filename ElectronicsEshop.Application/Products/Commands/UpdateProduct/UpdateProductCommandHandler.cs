@@ -27,7 +27,7 @@ public sealed class UpdateProductCommandHandler(
             throw new NotFoundException(nameof(Product), request.Id);
         }
 
-        if (!await categoryRepository.Exists(request.Data.CategoryId, cancellationToken))
+        if (!await categoryRepository.ExistsAsync(request.Data.CategoryId, cancellationToken))
         {
             logger.LogWarning("Nelze aktualizovat produkt {ProductId} ({ProductCode}). Kategorie s Id {CategoryId} neexistuje.",
                 entity.Id, request.Data.ProductCode, request.Data.CategoryId);

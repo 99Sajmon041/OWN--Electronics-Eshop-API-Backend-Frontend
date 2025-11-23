@@ -18,7 +18,7 @@ public sealed class CreateProductCommandHandler(
         logger.LogInformation("Začínám vytvářet produkt {ProductName} s kódem {ProductCode} v kategorii {CategoryId}.",
             request.Data.Name, request.Data.ProductCode, request.Data.CategoryId);
 
-        if (!await categoryRepository.Exists(request.Data.CategoryId, cancellationToken))
+        if (!await categoryRepository.ExistsAsync(request.Data.CategoryId, cancellationToken))
         {
             logger.LogWarning("Nelze vytvořit produkt {ProductName} s kódem {ProductCode}. Kategorie s Id {CategoryId} neexistuje.",
                 request.Data.Name, request.Data.ProductCode, request.Data.CategoryId);

@@ -12,4 +12,13 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
             .AsNoTracking()
             .AnyAsync(ci => ci.ProductId == productId);
     }
+
+    public async Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct)
+    {
+        return await db.CartItems
+            .AsNoTracking()
+            .Include(ci => ci.Product)
+            .ThenInclude(p => p.Category)
+            .AnyAsync(ci => ci.Product.CategoryId == categoryId, ct);
+    }
 }

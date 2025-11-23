@@ -83,7 +83,9 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         var entity = await db.Products.FindAsync(new object?[] { id }, ct);
-        if (entity is null) return;
+        if (entity is null)
+            return;
+
         db.Products.Remove(entity);
         await db.SaveChangesAsync(ct);
     }
@@ -120,5 +122,12 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
     {
         product.IsActive = isActive;
         await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct)
+    {
+        return await db.Products
+            .AsNoTracking()
+            .AnyAsync(p => p.CategoryId == categoryId, ct);
     }
 }

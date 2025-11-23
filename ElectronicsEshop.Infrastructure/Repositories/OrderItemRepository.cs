@@ -10,7 +10,16 @@ namespace ElectronicsEshop.Infrastructure.Repositories
         {
             return await db.OrderItems
                 .AsNoTracking()
-                .AnyAsync(oi => oi.ProductId == productId);
+                .AnyAsync(oi => oi.ProductId == productId, cancellationToken);
+        }
+
+        public async Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct)
+        {
+            return await db.OrderItems
+                .AsNoTracking()
+                .Include(oi => oi.Product)
+                .ThenInclude(p => p.Category)
+                .AnyAsync(oi => oi.Product.CategoryId == categoryId, ct);
         }
     }
 }

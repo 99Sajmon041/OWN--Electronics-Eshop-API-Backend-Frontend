@@ -8,6 +8,6 @@ public sealed class GetOrderQueryValidator : AbstractValidator<GetOrderQuery>
     {
         RuleFor(o => o.Id)
             .GreaterThan(0)
-            .WithMessage("ID musí nabývat kladné hodnoty.");
+            .WithMessage("ID musí být větší než 0.");
     }
 }

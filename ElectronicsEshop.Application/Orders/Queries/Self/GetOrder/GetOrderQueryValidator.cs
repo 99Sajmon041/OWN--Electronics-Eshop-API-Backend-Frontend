@@ -7,7 +7,7 @@ public sealed class GetOrderQueryValidator : AbstractValidator<GetOrderQuery>
     public GetOrderQueryValidator()
     {
         RuleFor(o => o.Id).GreaterThan(0)
-            .WithMessage("ID nemůže nabývat záporné hodnoty.");
+            .WithMessage("ID musí být větší než 0.");
 
     }
 }
