@@ -1,6 +1,7 @@
 ﻿using ElectronicsEshop.Application.Exceptions;
 using ElectronicsEshop.Application.User;
 using ElectronicsEshop.Domain.Entities;
+using ElectronicsEshop.Domain.RepositoryInterfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,8 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Commands.Self.DeleteUser
 
 public sealed class DeleteUserCommandHandler(IUserContext userContext,
     UserManager<ApplicationUser> userManager,
-    ILogger<DeleteUserCommandHandler> logger) : IRequestHandler<DeleteUserCommand>
+    ILogger<DeleteUserCommandHandler> logger,
+    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteUserCommand>
 {
     public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
@@ -27,8 +29,13 @@ public sealed class DeleteUserCommandHandler(IUserContext userContext,
 
         if (user is null)
         {
-            logger.LogWarning("Uživatel s E-mailem {UserEmail} nebyl nalezen při pokusu o smazání profilu.", currentUser.Email);
+            logger.LogWarning("Uživatel s E-mailem {UserEmail} nebyl nalezen při pokusu o deaktivaci profilu.", currentUser.Email);
             throw new NotFoundException(nameof(ApplicationUser), currentUser.Email);
+        }
+
+        if (await cartItemRepository.ExistsForUserAsync(user.Id, cancellationToken))
+        {
+            logger.LogWarning("Nelze deaktivovat uživatele s E-mailem {UserEmail} – má v košíku položky. Je třeba je odstranit.", user.Email); throw new ForbiddenException($"Nepodařilo se deaktivovat uživatele s E-mailem: {user.Email}, v košíku jsou položky, které je třeba odstranit.");
         }
 
         user.Active = false;

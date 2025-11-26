@@ -29,8 +29,7 @@ public sealed class ProductImageService : IProductImageService
         await using var stream = new FileStream(filePath, FileMode.Create);
         await image.CopyToAsync(stream, ct);
 
-        var relativePath = Path.Combine(ProductsFolder, fileName)
-            .Replace('\\', '/');
+        var relativePath = Path.Combine(ProductsFolder, fileName).Replace('\\', '/');
 
         return relativePath;
     }

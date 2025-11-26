@@ -18,6 +18,7 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
         var items = await baseQuery
             .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
             .OrderByDescending(o => o.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -42,7 +43,7 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .AsNoTracking()
             .Include(o => o.ApplicationUser)
             .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+            .ThenInclude(oi => oi.Product)
             .AsQueryable();
 
         if (from is not null)

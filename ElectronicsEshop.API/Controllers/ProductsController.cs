@@ -148,17 +148,17 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateImage([FromRoute] int id, [FromForm] UpdateProductImageRequest  request, CancellationToken ct)
     {
-        var newImageurl = await imageService.SaveImageAsync(request.ImageFile, ct);
+        var newImageUrl = await imageService.SaveImageAsync(request.ImageFile, ct);
 
         var command = new UpdateProductImageCommand
         {
             Id = id,
-            ImageUrl = newImageurl
+            ImageUrl = newImageUrl
         };
 
         var oldImageUrl = await mediator.Send(command, ct);
 
-        if (!string.Equals(oldImageUrl, newImageurl, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(oldImageUrl, newImageUrl, StringComparison.OrdinalIgnoreCase))
             await imageService.DeleteImageAsync(oldImageUrl, ct);
 
         return NoContent();

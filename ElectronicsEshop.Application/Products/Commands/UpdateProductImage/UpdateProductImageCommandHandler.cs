@@ -14,7 +14,7 @@ public sealed class UpdateProductImageCommandHandler(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        logger.LogInformation("Aktualizuji obrázek produktu s Id {ProductId}.", request.Id);
+        logger.LogInformation("Byl aktualizován obrázek produktu s Id {ProductId}.", request.Id);
 
         var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
 

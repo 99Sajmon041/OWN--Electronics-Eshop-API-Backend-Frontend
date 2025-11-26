@@ -7,7 +7,7 @@ public sealed class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
 {
     public GetOrdersQueryValidator()
     {
-        RuleFor(x => x.Page).GreaterThan(0);
+        RuleFor(x => x.Page).GreaterThan(0).WithMessage("Strana musí být větší / rovno 1");
         RuleFor(x => x.PageSize).InclusiveBetween(PaginationConstants.MinPageSize, PaginationConstants.MaxPageSize);
     }
 }

@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ElectronicsEshop.API.Controllers
 {
     [ApiController]
-    [Route("api/admin/[controller]")]
+    [Route("api/admin/categories")]
     [Authorize(Policy = PolicyNames.AdminOnly)]
     public class CategoriesController(IMediator mediator) : ControllerBase
     {
