@@ -1,6 +1,7 @@
 ﻿using ElectronicsEshop.Application.Carts.Commands.AddCartItem;
 using ElectronicsEshop.Application.Carts.Commands.DeleteCartItem;
 using ElectronicsEshop.Application.Carts.Commands.DeleteCartItems;
+using ElectronicsEshop.Application.Carts.Commands.SubmitCart;
 using ElectronicsEshop.Application.Carts.DTOs;
 using ElectronicsEshop.Application.Carts.Queries.Self.GetCart;
 using MediatR;
@@ -56,6 +57,16 @@ namespace ElectronicsEshop.API.Controllers
         public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
         {
             await mediator.Send(new DeleteCartItemCommand(id), ct);
+            return NoContent();
+        }
+        [HttpPost("submit")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Submit(CancellationToken ct)
+        {
+            await mediator.Send(new SubmitCartCommand(), ct);
             return NoContent();
         }
     }

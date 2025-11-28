@@ -5,7 +5,6 @@ namespace ElectronicsEshop.Application.Orders.DTOs;
 public sealed class AdminOrderDetailDto
 {
     public int Id { get; set; }
-    public int OrderNumber { get; set; }
     public string CustomerId { get; set; } = default!;
     public string CustomerEmail { get; set; } = default!;
     public string CustomerFullName { get; set; } = default!;

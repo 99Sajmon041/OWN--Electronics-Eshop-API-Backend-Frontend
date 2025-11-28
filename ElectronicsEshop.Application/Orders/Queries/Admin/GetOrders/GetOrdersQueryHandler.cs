@@ -13,7 +13,7 @@ public sealed class GetOrdersQueryHandler(IOrderRepository orderRepository,
 {
     public async Task<PagedResult<AdminOrderListItemDto>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        var (orders, ordersCount) = await orderRepository.GetPagedForAdminAsync(request.Page, request.PageSize, request.From, request.To, request.OrderStatus, request.CustomerEmail, request.OrderNumber, cancellationToken);
+        var (orders, ordersCount) = await orderRepository.GetPagedForAdminAsync(request.Page, request.PageSize, request.OrderId, request.From, request.To, request.OrderStatus, request.CustomerEmail, cancellationToken);
 
         var ordersDto = mapper.Map<IReadOnlyList<AdminOrderListItemDto>>(orders);
 

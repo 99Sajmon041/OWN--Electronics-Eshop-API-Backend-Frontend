@@ -37,6 +37,14 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
                 orderState = "Nová";
                 break;
 
+            case OrderStatus.Pending:
+                orderState = "Platba probíhá";
+                break;
+
+            case OrderStatus.Paid:
+                orderState = "Zaplacena";
+                break;
+
             case OrderStatus.Cancelled :
                 orderState = "Zrušena";
                 break;
@@ -56,6 +64,8 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
         //    OrderStatus.Cancelled => "Zrušena",
         //    OrderStatus.Shipped => "Odeslána",
         //    OrderStatus.Completed => "Dokončena",
+        //    OrderStatus.Paid => "Zaplacena",
+        //    OrderStatus.Pending => "Platba probíhá",
         //    _ => "Neznámý"
         //};
 

@@ -37,7 +37,7 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id && o.ApplicationUserId == userId, ct);
     }
 
-    public async Task<(IReadOnlyList<Order>, int totalCount)> GetPagedForAdminAsync(int page, int pageSize, DateOnly? from, DateOnly? to, OrderStatus? status, string? customerEmail, int? orderNumber, CancellationToken ct)
+    public async Task<(IReadOnlyList<Order>, int totalCount)> GetPagedForAdminAsync(int page, int pageSize, int? orderId, DateOnly? from, DateOnly? to, OrderStatus? status, string? customerEmail, CancellationToken ct)
     {
         var query = db.Orders
             .AsNoTracking()
@@ -45,6 +45,9 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
             .AsQueryable();
+
+        if (orderId is not null)
+            query = query.Where(o => o.Id == orderId);
 
         if (from is not null)
             query = query.Where(o => DateOnly.FromDateTime(o.CreatedAt) >= from.Value);
@@ -57,9 +60,6 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
         if (!string.IsNullOrWhiteSpace(customerEmail))
             query = query.Where(o => o.ApplicationUser.Email == customerEmail);
-
-        if (orderNumber is not null)
-            query = query.Where(o => o.OrderNumber == orderNumber.Value);
 
         var ordersCount = await query.CountAsync(ct);
 
@@ -94,5 +94,11 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
         return await db.Orders
             .Include(o => o.ApplicationUser)
             .FirstOrDefaultAsync(o => o.Id == id, ct);
+    }
+
+    public async Task CreateAsync(Order order, CancellationToken ct)
+    {
+        await db.Orders.AddAsync(order, ct);
+        await db.SaveChangesAsync(ct);
     }
 }

@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<Applicat
     public DbSet<Cart> Carts { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Order> Orders { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,7 +57,6 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<Applicat
             .IsRequired()
             .HasMaxLength(256);
         });
-            
 
         modelBuilder.Entity<Order>()
             .HasMany(o => o.OrderItems)
@@ -100,6 +100,18 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<Applicat
             .WithOne(a => a.Cart)
             .HasForeignKey<Cart>(c => c.ApplicationUserId)
             .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.Order)
+            .WithMany()
+            .HasForeignKey(p => p.OrderId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 

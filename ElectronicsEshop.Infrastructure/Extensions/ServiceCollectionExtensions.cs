@@ -1,8 +1,10 @@
-﻿using ElectronicsEshop.Domain.Entities;
+﻿using ElectronicsEshop.Application.Abstractions;
+using ElectronicsEshop.Domain.Entities;
 using ElectronicsEshop.Domain.Enums;
 using ElectronicsEshop.Domain.RepositoryInterfaces;
 using ElectronicsEshop.Infrastructure.Database;
 using ElectronicsEshop.Infrastructure.Options;
+using ElectronicsEshop.Infrastructure.Payments;
 using ElectronicsEshop.Infrastructure.Repositories;
 using ElectronicsEshop.Infrastructure.Security;
 using ElectronicsEshop.Infrastructure.Seeders;
@@ -41,6 +43,8 @@ public static class ServiceCollectionExtensions
         .AddDefaultTokenProviders();
 
         services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, EshopUserClaimsPrincipalFactory>();
+        services.AddScoped<IPaymentService, FakePaymentService>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
 
         services.AddAuthentication(options =>
         {
