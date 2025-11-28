@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace ElectronicsEshop.Application.Abstractions;
+﻿namespace ElectronicsEshop.Application.Abstractions;
 
 public interface IPaymentService
 {
