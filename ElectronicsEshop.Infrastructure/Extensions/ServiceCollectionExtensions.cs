@@ -3,6 +3,7 @@ using ElectronicsEshop.Domain.Entities;
 using ElectronicsEshop.Domain.Enums;
 using ElectronicsEshop.Domain.RepositoryInterfaces;
 using ElectronicsEshop.Infrastructure.Database;
+using ElectronicsEshop.Infrastructure.Identity;
 using ElectronicsEshop.Infrastructure.Options;
 using ElectronicsEshop.Infrastructure.Payments;
 using ElectronicsEshop.Infrastructure.Repositories;
@@ -42,6 +43,7 @@ public static class ServiceCollectionExtensions
         .AddRoles<IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddSignInManager()
+        .AddErrorDescriber<CzechIdentityErrorDescriber>()
         .AddDefaultTokenProviders();
 
         services.AddScoped<IPaymentService, FakePaymentService>();

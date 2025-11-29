@@ -1,4 +1,4 @@
-﻿namespace ElectronicsEshop.Blazor.Auth;
+﻿namespace ElectronicsEshop.Blazor.Auth.Models.Register;
 
 public sealed class RegisterRequest
 {

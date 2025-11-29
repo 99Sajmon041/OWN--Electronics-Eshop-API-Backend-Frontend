@@ -45,9 +45,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
-
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
 

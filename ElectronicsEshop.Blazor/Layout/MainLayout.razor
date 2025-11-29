@@ -1,4 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using ElectronicsEshop.Blazor.UI
+@using ElectronicsEshop.Blazor.UI.Message
+@inject MessageService MessageService
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -9,8 +13,33 @@
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
+        @if(MessageService.Current is not null)
+        {
+            var css = MessageService.Current.Type switch
+            {
+                MessageType.Success => "alert-success",
+                MessageType.Warning => "alert-warning",
+                MessageType.Error => "alert-danger",
+                _ => "alert-info"
+            };
+
+            <div class="alert @css d-flex justify-content-between align-items-center" role="alert">
+                <span>@MessageService.Current.Text</span>
+                <button type="button" class="btn-close" @onclick="ClearMessage"></button>
+            </div>
+        }
+
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code{
+    protected override void OnInitialized()
+    {
+        MessageService.onChange += StateHasChanged;
+    }
+
+    private void ClearMessage() => MessageService.Clear();
+}

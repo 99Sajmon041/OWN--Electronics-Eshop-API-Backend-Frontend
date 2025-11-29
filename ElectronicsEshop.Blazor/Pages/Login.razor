@@ -1,15 +1,15 @@
-﻿@page "/"
-@page "/login"
+﻿@page "/login"
 @using ElectronicsEshop.Blazor.Auth
+@using ElectronicsEshop.Blazor.Auth.Models
+@using ElectronicsEshop.Blazor.Auth.Models.Login
+@using ElectronicsEshop.Blazor.UI.Message
+@using Microsoft.AspNetCore.Components.Authorization
+@inject MessageService MessageService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
 <h3>Přihlášení</h3>
-
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
 
 <EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -35,21 +35,30 @@
 
 @code {
     private LoginRequest model = new();
-    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated is true)
+        {
+            MessageService.ShowInfo("Jste již přihlášen. Přesměrováno na hlavní stránku.");
+            Nav.NavigateTo("/");
+        }
+    }
 
     private async Task HandleValidSubmit()
     {
-        errorMessage = null;
+        var result = await AuthService.LoginAsync(model);
 
-        var success = await AuthService.LoginAsync(model);
-
-        if(success)
+        if (result.Success)
         {
+            MessageService.ShowSuccess("Úspěšně přihlášen.");
             Nav.NavigateTo("/");
         }
         else
         {
-            errorMessage = "Přihlášení se nezdařilo. Zkontroluj email nebo heslo.";
+            MessageService.ShowError(result.ErrorMessage ?? "Přihlášení se nezdařilo.");
         }
     }
 }

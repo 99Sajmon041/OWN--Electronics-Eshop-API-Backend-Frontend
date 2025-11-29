@@ -3,6 +3,7 @@ using ElectronicsEshop.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace ElectronicsEshop.Application.Authorization.Commands.ResetPassword;
 
@@ -24,7 +25,9 @@ public sealed class ResetPasswordCommandHandler(UserManager<ApplicationUser> use
             throw new DomainException("Odkaz pro reset hesla je neplatný nebo vypršel.");
         }
 
-        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var decodedToken = WebUtility.UrlEncode(request.Token);
+
+        var result = await userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
 
         if (!result.Succeeded)
         {
