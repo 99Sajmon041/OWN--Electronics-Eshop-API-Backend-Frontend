@@ -43,7 +43,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return Ok(result);
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPost]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -66,7 +66,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return CreatedAtAction(nameof(Get), new { id }, null);
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPut("{id:int:min(1)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -81,7 +81,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return NoContent();
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpDelete("{id:int:min(1)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,7 +96,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return NoContent();
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPatch("{id:int:min(1)}/discount")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -110,7 +110,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return NoContent();
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPatch("{id:int:min(1)}/stock-qty")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -124,7 +124,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return NoContent();
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPatch("{id:int:min(1)}/active")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -138,7 +138,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
         return NoContent();
     }
 
-    [Authorize(Policy = PolicyNames.CanManageProducts)]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     [HttpPatch("{id:int:min(1)}/image")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

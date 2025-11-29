@@ -1,16 +1,25 @@
-﻿using ElectronicsEshop.Application.Exceptions;
+﻿using System.Security.Claims;
+using System.Text;
+using ElectronicsEshop.Application.Authorization.DTOs;
+using ElectronicsEshop.Application.Exceptions;
 using ElectronicsEshop.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Globalization;
 
 namespace ElectronicsEshop.Application.Authorization.Commands.Login;
 
-public sealed class LoginCommandHandler(UserManager<ApplicationUser> userManager,
+public sealed class LoginCommandHandler(
+    UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    ILogger<LoginCommandHandler> logger) : IRequestHandler<LoginCommand, bool>
+    IConfiguration configuration,
+    ILogger<LoginCommandHandler> logger) : IRequestHandler<LoginCommand, LoginResult>
 {
-    public async Task<bool> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -28,7 +37,7 @@ public sealed class LoginCommandHandler(UserManager<ApplicationUser> userManager
             throw new DomainException("Účet je deaktivován.");
         }
 
-        var result = await signInManager.PasswordSignInAsync(user.UserName!, request.Password, request.RememberMe, lockoutOnFailure: true);
+        var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
         if (!result.Succeeded)
         {
@@ -42,7 +51,53 @@ public sealed class LoginCommandHandler(UserManager<ApplicationUser> userManager
             throw new DomainException("Neplatné přihlašovací údaje.");
         }
 
+        var roles = await userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Name, user.Email ?? string.Empty)
+        };
+
+        foreach(var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        if(user.DateOfBirth != default)
+        {
+            var dob = user.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            claims.Add(new Claim(ClaimTypes.DateOfBirth, dob));
+        }
+
+        var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+
+        var issuer = configuration["Jwt:Issuer"] ?? "ElectronicsEshop";
+        var audience = configuration["Jwt:Audience"] ?? "ElectronicsEshopClient";
+        var expiresMinutes = int.TryParse(configuration["Jwt:ExpiresMinutes"], out var minutes) ? minutes : 60;
+
+        var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        var creds = new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256);
+
+        var expiresAt = DateTime.UtcNow.AddMinutes(expiresMinutes);
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: expiresAt,
+            signingCredentials: creds);
+
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
         logger.LogInformation("Uživatel {Email} byl úspěšně přihlášen.", request.Email);
-        return true;
+
+        return new LoginResult
+        {
+            AccessToken = accessToken,
+            ExpiresAt = expiresAt,
+        };
     }
 }

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronicsEshop.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronicsEshop.Infrastructure", "ElectronicsEshop.Infrastructure\ElectronicsEshop.Infrastructure.csproj", "{51D2FCB0-680B-400C-8223-7DFFDE22DAA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronicsEshop.Blazor", "ElectronicsEshop.Blazor\ElectronicsEshop.Blazor.csproj", "{94115950-5446-4892-A2BD-CC4CB7262C2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{51D2FCB0-680B-400C-8223-7DFFDE22DAA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51D2FCB0-680B-400C-8223-7DFFDE22DAA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51D2FCB0-680B-400C-8223-7DFFDE22DAA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94115950-5446-4892-A2BD-CC4CB7262C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94115950-5446-4892-A2BD-CC4CB7262C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94115950-5446-4892-A2BD-CC4CB7262C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94115950-5446-4892-A2BD-CC4CB7262C2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

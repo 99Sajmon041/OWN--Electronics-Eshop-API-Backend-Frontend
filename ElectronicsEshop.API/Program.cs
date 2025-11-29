@@ -20,6 +20,20 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .CreateLogger();
 
+const string BlazorClientOrigin = "BlazorClient";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(BlazorClientOrigin, policy =>
+    {
+        policy
+        .WithOrigins("https://localhost:7060")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
+
 builder.Host.UseSerilog();
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(ProductMappingProfile).Assembly); // pro všechny mappery v této Assebly, které dědí z Profile
@@ -59,6 +73,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+app.UseCors(BlazorClientOrigin);
 app.UseAuthentication();
 app.UseAuthorization();
 

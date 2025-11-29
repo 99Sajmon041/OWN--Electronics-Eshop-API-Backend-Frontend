@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using ElectronicsEshop.Application.Authorization.DTOs;
+using MediatR;
 
 namespace ElectronicsEshop.Application.Authorization.Commands.Login;
 
-public sealed class LoginCommand : IRequest<bool>
+public sealed class LoginCommand : IRequest<LoginResult>
 {
     public string Email { get; set; } = default!;
     public string Password { get; set; } = default!;

@@ -2,6 +2,7 @@
 using ElectronicsEshop.Application.Authorization.Commands.Login;
 using ElectronicsEshop.Application.Authorization.Commands.Register;
 using ElectronicsEshop.Application.Authorization.Commands.ResetPassword;
+using ElectronicsEshop.Application.Authorization.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,24 +15,24 @@ namespace ElectronicsEshop.API.Controllers
     public class AuthController(IMediator mediator) : ControllerBase
     {
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Register([FromBody] RegisterAccountCommand command, CancellationToken ct)
         {
             await mediator.Send(command, ct);
-            return Ok();
+            return NoContent();
         }
 
         [HttpPost("login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResult))]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken ct)
         {
-            await mediator.Send(command, ct);
-            return Ok();
+            var result = await mediator.Send(command, ct);
+            return Ok(result);
         }
 
         [HttpPost("forgot-password")]

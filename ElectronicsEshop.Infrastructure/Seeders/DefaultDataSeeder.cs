@@ -10,15 +10,14 @@ namespace ElectronicsEshop.Infrastructure.Seeders;
 
 public sealed class DefaultDataSeeder(AppDbContext db, UserManager<ApplicationUser> users, RoleManager<IdentityRole> roles, IOptions<SeedOptions> seedOptions) : IDefaultDataSeeder
 {
-    string SeedEmail = seedOptions.Value.AdminEmail;
-    string SeedPassword = seedOptions.Value.AdminPassword;
-    string seedRole = seedOptions.Value.AdminRole;
+    private readonly string SeedEmail = seedOptions.Value.AdminEmail;
+    private readonly string SeedPassword = seedOptions.Value.AdminPassword;
+    private readonly string seedRole = seedOptions.Value.AdminRole;
 
     public async Task SeedData()
     {
         await EnsureRoleAsync(UserRoles.Admin.ToString());
         await EnsureRoleAsync(UserRoles.Client.ToString());
-        await EnsureRoleAsync(UserRoles.User.ToString());
 
         var user = await users.FindByEmailAsync(SeedEmail);
         if (user is null)
@@ -56,7 +55,7 @@ public sealed class DefaultDataSeeder(AppDbContext db, UserManager<ApplicationUs
             {
                 ApplicationUserId = user.Id,
                 UpdatedAt = DateTime.UtcNow,
-                CartItems = new List<CartItem>()
+                CartItems = []
             });
             await db.SaveChangesAsync();
         }

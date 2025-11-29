@@ -6,12 +6,14 @@ using ElectronicsEshop.Infrastructure.Database;
 using ElectronicsEshop.Infrastructure.Options;
 using ElectronicsEshop.Infrastructure.Payments;
 using ElectronicsEshop.Infrastructure.Repositories;
-using ElectronicsEshop.Infrastructure.Security;
 using ElectronicsEshop.Infrastructure.Seeders;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ElectronicsEshop.Infrastructure.Extensions;
 
@@ -42,22 +44,34 @@ public static class ServiceCollectionExtensions
         .AddSignInManager()
         .AddDefaultTokenProviders();
 
-        services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, EshopUserClaimsPrincipalFactory>();
         services.AddScoped<IPaymentService, FakePaymentService>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
 
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = IdentityConstants.BearerScheme;
-            options.DefaultChallengeScheme = IdentityConstants.BearerScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddBearerToken(IdentityConstants.BearerScheme);
-
-        services.AddAuthorization(options =>
+        .AddJwtBearer(options =>
         {
-            options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole(nameof(UserRoles.Admin)));
-            options.AddPolicy(PolicyNames.CanManageProducts, policy => policy.RequireRole(nameof(UserRoles.Admin)));
+            var key = configuration["Jwt:Key"]!;
+            var issuer = configuration["Jwt:Issuer"];
+            var audience = configuration["Jwt:Audience"];
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ClockSkew = TimeSpan.Zero
+            };
         });
+
+        services.AddAuthorizationBuilder()
+            .AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole(nameof(UserRoles.Admin)));
 
         services.AddScoped<IDefaultDataSeeder, DefaultDataSeeder>();
         services.AddScoped<IProductRepository, ProductRepository>();
