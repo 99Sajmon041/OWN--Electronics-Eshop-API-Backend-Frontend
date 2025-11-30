@@ -1,6 +1,8 @@
 using Blazored.LocalStorage;
 using ElectronicsEshop.Blazor;
-using ElectronicsEshop.Blazor.Auth;
+using ElectronicsEshop.Blazor.Services.Auth;
+using ElectronicsEshop.Blazor.Services.Categories;
+using ElectronicsEshop.Blazor.Services.Products;
 using ElectronicsEshop.Blazor.UI.Message;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -11,9 +13,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped <MessageService>();
+builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

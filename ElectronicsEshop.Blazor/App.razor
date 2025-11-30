@@ -3,8 +3,13 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <PageTitle>Přístup zamítnut</PageTitle>
+                    <h1>Přístup zamítnut</h1>
+                    <p>Pro vstup na tuto stránku se prosím přihlaste jako administrátor.</p>
+                </NotAuthorized>
+            </AuthorizeRouteView>
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>
@@ -14,4 +19,3 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
-

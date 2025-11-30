@@ -20,4 +20,12 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pages\Categories\" />
+  </ItemGroup>
+
 </Project>

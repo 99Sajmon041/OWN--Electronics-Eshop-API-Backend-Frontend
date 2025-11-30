@@ -15,7 +15,7 @@ public sealed class GetCategoriesQueryHandler(IMapper mapper,
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (items, itemsCount) = await categoryRepository.GetPagedForCategoriesAsync(request.Page, request.PageSize, cancellationToken);
+        var (items, itemsCount) = await categoryRepository.GetPagedAllAsync(request.Page, request.PageSize, cancellationToken);
 
         var categories = mapper.Map<IReadOnlyList<CategoryDto>>(items);
 

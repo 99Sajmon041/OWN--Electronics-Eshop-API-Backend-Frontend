@@ -1,0 +1,228 @@
+﻿@page "/admin/products"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject MessageService MessageService
+@inject IProductAdminService ProductAdminService
+@inject ICategoryService CategoryService
+@inject NavigationManager Nav
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Správa produktů</h3>
+
+    <button class="btn btn-primary" @onclick="OnCreateProduct">
+        Přidat produkt
+    </button>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <EditForm Model="model" OnValidSubmit="OnFilterAsync">
+            <div class="row g-2 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label">Hledat</label>
+                    <InputText class="form-control" @bind-Value="model.Q" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Aktivita</label>
+                    <InputSelect class="form-select" @bind-Value="model.IsActive">
+                        <option value="">Vše</option>
+                        <option value="true">Pouze aktivní</option>
+                        <option value="false">Pouze neaktivní</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Řadit dle</label>
+                    <InputSelect class="form-select" @bind-Value="model.Sort">
+                        <option value="name">Název</option>
+                        <option value="price">Cena</option>
+                        <option value="stockqty">Skladem</option>
+                        <option value="productcode">Kód produktu</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Směr řazení</label>
+                    <InputSelect class="form-select" @bind-Value="model.Order">
+                        <option value="@SortOrder.Asc">Vzestupně</option>
+                        <option value="@SortOrder.Desc">Sestupně</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Na stránku</label>
+                    <InputSelect class="form-select" @bind-Value="model.PageSize">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        Filtrovat
+                    </button>
+                </div>
+
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="alert alert-info">
+        Načítám produkty...
+    </div>
+}
+else if (products is null || products.Items.Count == 0)
+{
+    <div class="alert alert-info">
+        Nejsou k dispozici žádné produkty.
+    </div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            Stránka @products.Page / @TotalPages,
+            celkem @products.TotalCount položek
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary"
+                    @onclick="PreviousPage"
+                    disabled="@(!CanGoPrevious)">
+                Předchozí
+            </button>
+            <button class="btn btn-outline-secondary"
+                    @onclick="NextPage"
+                    disabled="@(!CanGoNext)">
+                Další
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-sm table-striped align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Kód</th>
+                <th>Aktivní</th>
+                <th>Název</th>
+                <th>Popis</th>
+                <th>Kategorie</th>
+                <th class="text-end">Cena</th>
+                <th class="text-end">Sleva %</th>
+                <th class="text-end">Cena po slevě</th>
+                <th class="text-end">Skladem</th>
+                <th>Obrázek</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products.Items)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.ProductCode</td>
+                    <td>
+                        @if (product.IsActive)
+                        {
+                            <span class="badge bg-success">Aktivní</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Neaktivní</span>
+                        }
+                    </td>
+                    <td>@product.Name</td>
+                    <td>
+                        @(product.Description.Length > 80 ? product.Description + "..." : product.Description)
+                    </td>
+                    <td>@product.CategoryName</td>
+                    <td class="text-end">@product.Price.ToString("0.00")</td>
+                    <td class="text-end">@product.DiscountPercentage.ToString("0.##")</td>
+                    <td class="text-end">@product.FinalPrice.ToString("0.00")</td>
+                    <td class="text-end">@product.StockQty</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" alt="product" class="img-thumbnail" style="max-width: 64px; max-height: 64px;" />
+                        }
+                    </td>
+                    <td>
+                        <!-- TADY PAK PŘIBYDOU TLAČÍTKA: Detail / Edit / Delete / Sklad / Sleva / Obrázek ... -->
+                        #
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private ProductRequest model = new();
+    private PagedResult<ProductListItemModel>? products;
+    private bool isLoading;
+
+    private int TotalPages =>
+        products is null || products.PageSize == 0
+            ? 0
+            : (int)Math.Ceiling((double)products.TotalCount / products.PageSize);
+
+    private bool CanGoPrevious => products is not null && products.Page > 1;
+    private bool CanGoNext => products is not null && products.Page < TotalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        try
+        {
+            isLoading = true;
+            products = await ProductAdminService.GetAllAsync(model);
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnFilterAsync()
+    {
+        model.Page = 1;
+        await LoadProductsAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (!CanGoPrevious)
+            return;
+
+        model.Page--;
+        await LoadProductsAsync();
+    }
+
+    private async Task NextPage()
+    {
+        if (!CanGoNext)
+            return;
+
+        model.Page++;
+        await LoadProductsAsync();
+    }
+
+    private void OnCreateProduct()
+    {
+        Nav.NavigateTo("admin/products/create");
+    }
+}

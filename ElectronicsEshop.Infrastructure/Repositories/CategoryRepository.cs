@@ -12,7 +12,7 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
         return await db.Categories.AnyAsync(c => c.Id == id, ct);
     }
 
-    public async Task<(IReadOnlyList<Category> items, int totalCount)> GetPagedForCategoriesAsync(int page, int pageSize, CancellationToken ct)
+    public async Task<(IReadOnlyList<Category> items, int totalCount)> GetPagedAllAsync(int page, int pageSize, CancellationToken ct)
     {
         var query = db.Categories.AsNoTracking();
 
@@ -61,5 +61,12 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
     {
         db.Categories.Update(category);
         await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken ct)
+    {
+        return await db.Categories
+            .AsNoTracking()
+            .ToListAsync(ct);
     }
 }

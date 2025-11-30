@@ -40,9 +40,7 @@ public sealed class GetProductsQueryHandler(
             Items = items,
             TotalCount = total,
             Page = request.Page,
-            PageSize = request.PageSize,
-            Sort = request.Sort,
-            Order = request.Order
+            PageSize = request.PageSize
         };
     }
 }

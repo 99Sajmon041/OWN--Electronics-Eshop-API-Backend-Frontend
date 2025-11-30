@@ -2,6 +2,7 @@
 using ElectronicsEshop.Application.Categories.Commands.DeleteCategory;
 using ElectronicsEshop.Application.Categories.Commands.UpdateCategory;
 using ElectronicsEshop.Application.Categories.DTOs;
+using ElectronicsEshop.Application.Categories.Queries.GetAllCategories;
 using ElectronicsEshop.Application.Categories.Queries.GetCategories;
 using ElectronicsEshop.Application.Categories.Queries.GetCategory;
 using ElectronicsEshop.Application.Common.Pagination;
@@ -78,6 +79,17 @@ namespace ElectronicsEshop.API.Controllers
             command.Id = id;
             await mediator.Send(command, ct);
             return NoContent();
+        }
+
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(IReadOnlyList<CategoryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetAll(CancellationToken ct)
+        {
+            var result = await mediator.Send(new GetAllCategoriesQuery(), ct);
+            return Ok(result);
         }
     }
 }

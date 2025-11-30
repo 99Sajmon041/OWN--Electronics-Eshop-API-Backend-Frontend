@@ -1,7 +1,0 @@
-﻿namespace ElectronicsEshop.Blazor.Auth.Models.Login;
-
-public sealed class LoginResponse
-{
-    public string AccessToken { get; set; } = string.Empty;
-    public DateTime ExpiresAt { get; set; }
-}
