@@ -58,9 +58,7 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedData();
 }
 
-app.UseMiddleware<UserLogEnricherMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseSerilogRequestLogging();
 app.UseStaticFiles();
 
 app.UseSwagger();
@@ -73,6 +71,9 @@ app.UseHttpsRedirection();
 app.UseCors(BlazorClientOrigin);
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<UserLogEnricherMiddleware>();
+app.UseSerilogRequestLogging();
 
 app.MapControllers();
 

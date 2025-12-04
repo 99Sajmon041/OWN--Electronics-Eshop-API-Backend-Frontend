@@ -4,7 +4,10 @@
 @inject MessageService MessageService
 @inject IProductAdminService ProductAdminService
 @inject ICategoryService CategoryService
+@inject IConfiguration Configuration
 @inject NavigationManager Nav
+@inject HttpClient Http
+@inject IJSRuntime JS
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">Správa produktů</h3>
@@ -87,18 +90,18 @@ else
 {
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
-            Stránka @products.Page / @TotalPages,
+            Stránka @products.Page / @totalPages,
             celkem @products.TotalCount položek
         </div>
         <div class="btn-group">
             <button class="btn btn-outline-secondary"
-                    @onclick="PreviousPage"
-                    disabled="@(!CanGoPrevious)">
+                    @onclick="PreviousPageAsync"
+                    disabled="@(!canGoPrevious)">
                 Předchozí
             </button>
             <button class="btn btn-outline-secondary"
-                    @onclick="NextPage"
-                    disabled="@(!CanGoNext)">
+                    @onclick="NextPageAsync"
+                    disabled="@(!canGoNext)">
                 Další
             </button>
         </div>
@@ -149,12 +152,42 @@ else
                     <td>
                         @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
                         {
-                            <img src="@product.ImageUrl" alt="product" class="img-thumbnail" style="max-width: 64px; max-height: 64px;" />
+                            <img src="@Http.GetImageUrl(product.ImageUrl)" alt="product" class="img-thumbnail" style="max-width: 64px; max-height: 64px;" />
                         }
                     </td>
                     <td>
-                        <!-- TADY PAK PŘIBYDOU TLAČÍTKA: Detail / Edit / Delete / Sklad / Sleva / Obrázek ... -->
-                        #
+                        <div class="d-flex flex-wrap gap-1 justify-content-end">
+
+                            <div class="form-check form-switch align-self-center me-1">
+                                <input type="checkbox" class="form-check-input"
+                                checked="@product.IsActive" @onchange="e => OnActiveChangedAsync(product.Id, (bool)e.Value!)"/>
+                            </div>
+
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenDiscountModal(product.Id, product.DiscountPercentage)">
+                                Sleva
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenStockModal(product.Id, product.StockQty)">
+                                Sklad
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenImageModal(product.Id)">
+                                Obrázek
+                            </button>
+
+                            <button class="btn btn-sm btn-secondary" @onclick="() => RedirectToDetail(product.Id)">
+                                Detail
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RedirectToUpdate(product.Id)">
+                                Upravit
+                            </button>
+
+                            <button class="btn btn-sm btn-primary" @onclick="() => DeleteAsync(product.Id)">
+                                Smazat
+                            </button>
+
+                        </div>
                     </td>
                 </tr>
             }
@@ -162,18 +195,82 @@ else
     </table>
 }
 
+@*--------------------------Modal windows*--------------------------*@
+
+<ModalDialog IsOpen="isStockModalOpen"
+             Title="Upravit skladové množství"
+             ErrorMessage="@stockModalError"
+             IsBusy="isStockSaving"
+             OnCancel="CloseStockModal"
+             OnSave="UpdateStockQtyAsync">
+    <div class="mb-3">
+        <label class="form-label">Nové množství skladem</label>
+        <InputNumber @bind-Value="newStockQty" class="form-control" />
+    </div>
+</ModalDialog>
+
+<ModalDialog IsOpen="isDiscountModalOpen"
+             Title="Upravit slevu produktu"
+             ErrorMessage="@discountModalError"
+             IsBusy="isDiscountSaving"
+             OnCancel="CloseDiscountModal"
+             OnSave="UpdateDiscountAsync">
+    <div class="mb-3">
+        <label class="form-label">Sleva (%)</label>
+        <InputNumber @bind-Value="newDiscount" class="form-control" />
+    </div>
+</ModalDialog>
+
+<ModalDialog IsOpen="isImageModalOpen"
+             Title="Změnit obrázek produktu"
+             ErrorMessage="@imageModalError"
+             IsBusy="isImageSaving"
+             OnCancel="CloseImageModal"
+             OnSave="UpdateImageAsync">
+
+    <div class="mb-3">
+        <label class="form-label">Nový obrázek</label>
+        <InputFile OnChange="HandleImageChange" />
+        <small class="form-text text-muted">
+            Vyberte JPG/PNG (např. do 5 MB).
+        </small>
+    </div>
+
+</ModalDialog>
+
+@*--------------------------Modal windows*--------------------------*@
+
+
 @code {
     private ProductRequest model = new();
-    private PagedResult<ProductListItemModel>? products;
+    private PagedResult<ProductModel>? products;
     private bool isLoading;
 
-    private int TotalPages =>
-        products is null || products.PageSize == 0
+    private bool isStockModalOpen;
+    private bool isStockSaving;
+    private int? selectedProductIdForStock;
+    private int newStockQty;
+    private string? stockModalError;
+
+    private bool isDiscountModalOpen;
+    private bool isDiscountSaving;
+    private int? selectedProductIdForDiscount;
+    private decimal newDiscount;
+    private string? discountModalError;
+
+    private bool isImageModalOpen;
+    private bool isImageSaving;
+    private int? selectedProductIdForImage;
+    private IBrowserFile? newImageFile;
+    private string? imageModalError;
+
+
+    private int totalPages => products is null || products.PageSize == 0
             ? 0
             : (int)Math.Ceiling((double)products.TotalCount / products.PageSize);
 
-    private bool CanGoPrevious => products is not null && products.Page > 1;
-    private bool CanGoNext => products is not null && products.Page < TotalPages;
+    private bool canGoPrevious => products is not null && products.Page > 1;
+    private bool canGoNext => products is not null && products.Page < totalPages;
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,18 +300,18 @@ else
         await LoadProductsAsync();
     }
 
-    private async Task PreviousPage()
+    private async Task PreviousPageAsync()
     {
-        if (!CanGoPrevious)
+        if (!canGoPrevious)
             return;
 
         model.Page--;
         await LoadProductsAsync();
     }
 
-    private async Task NextPage()
+    private async Task NextPageAsync()
     {
-        if (!CanGoNext)
+        if (!canGoNext)
             return;
 
         model.Page++;
@@ -223,6 +320,221 @@ else
 
     private void OnCreateProduct()
     {
-        Nav.NavigateTo("admin/products/create");
+        Nav.NavigateTo("/admin/products/create");
+    }
+
+    // Update stock quantity action------------------------------------------------------------------
+
+    private void OpenStockModal(int productId, int currentStockQty)
+    {
+        selectedProductIdForStock = productId;
+        newStockQty = currentStockQty;
+        stockModalError = null;
+        isStockModalOpen = true;
+    }
+
+    private void CloseStockModal()
+    {
+        isStockModalOpen = false;
+        stockModalError = null;
+    }
+
+    private async Task UpdateStockQtyAsync()
+    {
+        if (!await JS.ConfirmAction($"Opravdu si přejete přidat počet kusů: {newStockQty} na sklad ?"))
+        {
+            return;
+        }
+
+        if (selectedProductIdForStock is null)
+            return;
+
+        isStockSaving = true;
+        stockModalError = null;
+
+        try
+        {
+            await ProductAdminService.UpdateStockQtyAsync(selectedProductIdForStock.Value, newStockQty, CancellationToken.None);
+
+            isStockModalOpen = false;
+            MessageService.ShowSuccess($"Úprava množstí skladem proběhla úspěšně. Je přidáno: {newStockQty} kusů.");
+            await LoadProductsAsync();
+        }
+        catch(Exception ex)
+        {
+            stockModalError = ex.Message;
+        }
+        finally
+        {
+            isStockSaving = false;
+        }
+    }
+
+    // Update discount action------------------------------------------------------------------
+
+    private void OpenDiscountModal(int productId, decimal currentDiscount)
+    {
+        selectedProductIdForDiscount = productId;
+        newDiscount = currentDiscount;
+        discountModalError = null;
+        isDiscountModalOpen = true;
+    }
+
+    private void CloseDiscountModal()
+    {
+        isDiscountModalOpen = false;
+        discountModalError = null;
+    }
+
+    private async Task UpdateDiscountAsync()
+    {
+        if (!await JS.ConfirmAction($"Opravdu si přejete upravit slevu na: {newDiscount} % ?"))
+        {
+            return;
+        }
+
+        if (selectedProductIdForDiscount is null)
+            return;
+
+        isDiscountSaving = true;
+        discountModalError = null;
+
+        try
+        {
+            await ProductAdminService.UpdateDiscountAsync(selectedProductIdForDiscount.Value, newDiscount, CancellationToken.None);
+
+            MessageService.ShowSuccess($"Sleva byla nastavena na {newDiscount:0.##} %.");
+
+            isDiscountModalOpen = false;
+            await LoadProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            discountModalError = ex.Message;
+        }
+        finally
+        {
+            isDiscountSaving = false;
+        }
+    }
+
+    // Update image action------------------------------------------------------------------
+
+    private void OpenImageModal(int productId)
+    {
+        selectedProductIdForImage = productId;
+        newImageFile = null;
+        imageModalError = null;
+        isImageModalOpen = true;
+    }
+
+    private void CloseImageModal()
+    {
+        isImageModalOpen = false;
+        imageModalError = null;
+        newImageFile = null;
+    }
+
+    private void HandleImageChange(InputFileChangeEventArgs e)
+    {
+        newImageFile = e.File;
+        imageModalError = null;
+    }
+
+    private async Task UpdateImageAsync()
+    {
+        if (!await JS.ConfirmAction($"Opravdu si přejete změnit obrázek ?"))
+        {
+            return;
+        }
+
+        if (selectedProductIdForImage is null)
+            return;
+
+        if (newImageFile is null)
+        {
+            imageModalError = "Musíte vybrat soubor s obrázkem.";
+            return;
+        }
+
+        isImageSaving = true;
+        imageModalError = null;
+
+        try
+        {
+            await ProductAdminService.UpdateImageAsync(selectedProductIdForImage.Value, newImageFile, CancellationToken.None);
+
+            MessageService.ShowSuccess("Obrázek produktu byl úspěšně změněn.");
+
+            isImageModalOpen = false;
+            await LoadProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            imageModalError = ex.Message;
+        }
+        finally
+        {
+            isImageSaving = false;
+        }
+    }
+
+    // Update state of product action---------------------------------------------------------
+
+    private async Task OnActiveChangedAsync(int productId, bool isActive)
+    {
+        var state = isActive ? "aktivní" : "neaktivní";
+
+        if (!await JS.ConfirmAction($"Opravdu si přejete nastavit stav produktu na: {state} ?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await ProductAdminService.SetActiveAsync(productId, isActive);
+
+            MessageService.ShowSuccess($"Produktu nastaven stav jako: {state}.");
+
+            await LoadProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    // Delete product----------------------------------------------------------------------------
+
+    private async Task DeleteAsync(int productId)
+    {
+        if(!await JS.ConfirmAction($"Opravdu si přejete vymazat produkt s ID: {productId} ?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await ProductAdminService.DeleteAsync(productId);
+
+            MessageService.ShowSuccess($"Produkt s ID: {productId} byl odstraněn.");
+            await LoadProductsAsync();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+    // Update product--------------------------------------------------------------------------------
+
+    private void RedirectToUpdate(int productId)
+    {
+        Nav.NavigateTo($"/admin/products/update/{productId}");
+    }
+    // Detail of product------------------------------------------------------------------------------
+
+    private void RedirectToDetail(int productId)
+    {
+        Nav.NavigateTo($"/admin/products/detail/{productId}");
     }
 }

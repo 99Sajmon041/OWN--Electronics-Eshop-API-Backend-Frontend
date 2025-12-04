@@ -1,0 +1,120 @@
+﻿@page "/admin/products/detail/{Id:int}"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject NavigationManager Nav
+@inject MessageService MessageService
+@inject IProductAdminService ProductAdminService
+@inject IJSRuntime JS
+
+
+<h3>Detail produktu</h3>
+
+@if (model.Id == 0)
+{
+    <p>Načítám produkt...</p>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button class="btn btn-sm btn-secondary" @onclick="BackToList">
+            Zpět na seznam
+        </button>
+
+        <div>
+            <button class="btn btn-sm btn-warning me-2" @onclick="() => ReturnToUpdate(model.Id)">
+                Upravit
+            </button>
+            <button class="btn btn-sm btn-danger" @onclick="() => DeleteAsync(model.Id)">
+                Smazat
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>@model.Name</span>
+            <span class="badge bg-secondary">ID: @model.Id</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="@model.ImageUrl"
+                            alt="@model.Name"
+                            class="img-fluid img-thumbnail mb-2"
+                            style="max-width: 220px; height: auto;" />
+                </div>
+                <div class="col-md-8">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Název</dt>
+                        <dd class="col-sm-8">@model.Name</dd>
+
+                        <dt class="col-sm-4">Cena</dt>
+                        <dd class="col-sm-8">
+                            @model.Price.ToString("N0") Kč
+                        </dd>
+
+                        <dt class="col-sm-4">Název kategorie</dt>
+                        <dd class="col-sm-8">@model.CategoryName</dd>
+
+                        <dt class="col-sm-4">Popis</dt>
+                        <dd class="col-sm-8">
+                            <p class="mb-0">@model.Description</p>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ProductModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProductAsync();
+    }
+
+    private async Task LoadProductAsync()
+    {
+        try
+        {
+            model = await ProductAdminService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+    }
+
+    private void ReturnToUpdate(int productId)
+    {
+        Nav.NavigateTo($"/admin/products/update/{productId}");
+    }
+
+    private void BackToList()
+    {
+        Nav.NavigateTo("/admin/products");
+    }
+
+    private async Task DeleteAsync(int productId)
+    {
+        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat produkt '{model.Name}' (ID: {productId})?");      
+
+        try
+        {
+            await ProductAdminService.DeleteAsync(productId);
+
+            MessageService.ShowSuccess($"Produkt s ID: {productId} byl odstraněn.");
+            BackToList();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+}

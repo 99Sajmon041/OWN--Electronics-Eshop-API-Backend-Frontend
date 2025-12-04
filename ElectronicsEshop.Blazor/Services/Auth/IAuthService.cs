@@ -7,10 +7,10 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 {
     public interface IAuthService
     {
-        Task<LoginResult> LoginAsync(LoginModel request, CancellationToken ct = default);
+        Task<LoginResult> LoginAsync(LoginModel model, CancellationToken ct = default);
         Task LogoutAsync(CancellationToken ct = default);
-        Task<RegisterResult> RegisterAsync(RegisterModel request, CancellationToken ct = default);
-        Task<ForgotPasswordResult> ForgotPasswordAsync(ForgotPasswordModel request, CancellationToken ct = default);
-        Task<ResetPasswordResult> ResetPasswordAsync(ResetPasswordModel request, CancellationToken ct = default);
+        Task<RegisterResult> RegisterAsync(RegisterModel model, CancellationToken ct = default);
+        Task<ForgotPasswordResult> ForgotPasswordAsync(ForgotPasswordModel model, CancellationToken ct = default);
+        Task<ResetPasswordResult> ResetPasswordAsync(ResetPasswordModel model, CancellationToken ct = default);
     }
 }

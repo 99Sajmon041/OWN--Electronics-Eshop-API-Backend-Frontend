@@ -1,0 +1,85 @@
+﻿@page "/admin/categories/update/{Id:int}"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject MessageService MessageService
+@inject NavigationManager Nav
+@inject ICategoryService CategoryService
+
+<h3>Upravit kategorii</h3>
+
+<EditForm Model="model" OnValidSubmit="PutCategoryAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">ID</label>
+                    <input class="form-control" value="@model.Id" readonly />
+                </div>
+                <div class="col-md-9">
+                    <label class="form-label">Název kategorie</label>
+                    <InputText class="form-control" @bind-Value="model.Name" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" @onclick="BackToList">
+                Zpět na seznam
+            </button>
+            <button type="submit" class="btn btn-primary">
+                Upravit kategorii
+            </button>
+        </div>
+    </div>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateCategoryModel model = new();
+    private CategoryModel category = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetCategoryAsync();
+    }
+
+    private async Task SetCategoryAsync()
+    {
+        try
+        {
+            category = await CategoryService.GetByIdAsync(Id);
+            model.Name = category.Name;
+            model.Id = category.Id;
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+    }
+
+    private async Task PutCategoryAsync()
+    {
+        try
+        {
+            await CategoryService.UpdateAsync(model);
+            MessageService.ShowSuccess("Kategorie úspěšně upravena.");
+            BackToList();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private void BackToList()
+    {
+        Nav.NavigateTo("/admin/categories");
+    }
+}

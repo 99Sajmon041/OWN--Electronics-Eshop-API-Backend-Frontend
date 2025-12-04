@@ -1,0 +1,56 @@
+﻿@page "/admin/categories/create"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject MessageService MessageService
+@inject NavigationManager Nav
+@inject ICategoryService CategoryService
+
+<h3>Vytvoření kategorie</h3>
+
+<EditForm Model="model" OnValidSubmit="PostCategoryAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Název kategorie</label>
+                    <InputText class="form-control" @bind-Value="model.Name" />
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-end gap-2 mt-2">
+                <button type="button" class="btn btn-secondary" @onclick="BackToList">
+                    Zpět na seznam
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Vytvořit kategorii
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    CreateCategoryModel model = new();
+
+    private async Task PostCategoryAsync()
+    {
+        try
+        {
+            await CategoryService.CreateAsync(model);
+            MessageService.ShowSuccess("Kategorie byla úspěšně vytvořena.");
+            Nav.NavigateTo("/admin/categories");
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private void BackToList()
+    {
+        Nav.NavigateTo("/admin/categories");
+    }
+}

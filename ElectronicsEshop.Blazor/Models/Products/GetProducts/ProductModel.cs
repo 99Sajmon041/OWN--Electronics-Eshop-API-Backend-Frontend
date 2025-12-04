@@ -1,6 +1,6 @@
 ﻿namespace ElectronicsEshop.Blazor.Models.Products.GetProducts;
 
-public sealed class ProductListItemModel
+public sealed class ProductModel
 {
     public int Id { get; init; }
     public string ProductCode { get; init; } = default!;

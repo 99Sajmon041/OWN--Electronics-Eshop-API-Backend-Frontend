@@ -1,0 +1,199 @@
+﻿@page "/admin/categories"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject ICategoryService CategoryService
+@inject MessageService MessageService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Správa kategorií</h3>
+
+    <button class="btn btn-primary" @onclick="OnCreateCategory">
+        Přidat kategorii
+    </button>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <EditForm Model="model" OnValidSubmit="OnFilteredAsync">
+            <div class="row g-2 align-items-end">
+
+                <div class="col-md-2">
+                    <label class="form-label">Na stránku</label>
+                    <InputSelect class="form-select" @bind-Value="model.PageSize">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        Filtrovat
+                    </button>
+                </div>
+
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="alert alert-info">
+        Načítám kategorie...
+    </div>
+}
+else if (categories is null || categories.Items.Count == 0)
+{
+    <div class="alert alert-info">
+        Nejsou k dispozici žádné kategorie.
+    </div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            Stránka @categories.Page / @totalPages,
+            celkem @categories.TotalCount položek
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary"
+                    @onclick="PreviousPageAsync"
+                    disabled="@(!canGoPrevious)">
+                Předchozí
+            </button>
+            <button class="btn btn-outline-secondary"
+                    @onclick="NextPageAsync"
+                    disabled="@(!canGoNext)">
+                Další
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-sm table-striped align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Název</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in categories.Items)
+            {
+                <tr>
+                    <td>@category.Id</td>
+                    <td>@category.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(category.Id)">
+                            Detail
+                        </button>
+                        <button class="btn btn-sm btn-primary" @onclick="() => NavigateToUpdate(category.Id)">
+                            Upravit
+                        </button >
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAsync(category.Id, category.Name)">
+                            Odstranit
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private CategoryRequest model = new();
+    private PagedResult<CategoryModel>? categories;
+    private bool isLoading;
+
+    private int totalPages => categories is null || categories.PageSize == 0
+            ? 0
+            : (int)Math.Ceiling((double)categories.TotalCount / categories.PageSize);
+
+    private bool canGoPrevious => categories is not null && categories.Page > 1;
+    private bool canGoNext => categories is not null && categories.Page < totalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        try
+        {
+            isLoading = true;
+            categories = await CategoryService.GetAllAsync(model);
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnFilteredAsync()
+    {
+        model.Page = 1;
+        await LoadCategoriesAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (!canGoPrevious)
+            return;
+
+        model.Page--;
+        await LoadCategoriesAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (!canGoNext)
+            return;
+
+        model.PageSize++;
+        await LoadCategoriesAsync();
+    }
+
+    private void OnCreateCategory()
+    {
+        Nav.NavigateTo("/admin/categories/create");
+    }
+
+    private void NavigateToDetail(int id)
+    {
+        Nav.NavigateTo($"/admin/categories/{id}");
+    }
+
+    private void NavigateToUpdate(int id)
+    {
+        Nav.NavigateTo($"/admin/categories/update/{id}");
+    }
+
+    private async Task DeleteAsync(int id, string categoryName)
+    {
+        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat kategorii s názvem: {categoryName} ?");
+
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await CategoryService.DeleteAsync(id);
+            MessageService.ShowInfo("Kategorie byla úspěšně smazána.");
+            await LoadCategoriesAsync();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+}

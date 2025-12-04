@@ -1,0 +1,88 @@
+﻿@page "/admin/categories/{Id:int}"
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject NavigationManager Nav
+@inject ICategoryService CategoryService
+@inject MessageService MessageService
+
+<h3>Detail kategorie</h3>
+
+@if(isLoading)
+{
+    <div class="alert alert-info">
+         Načítám kategorii...
+    </div>
+}
+else if(category is null)
+{
+    <div class="alert alert-danger">
+        Kategorie nebyla nalezena.
+    </div>
+
+    <button class="btn btn-secondary" @onclick="BackToList">
+        Zpět na seznam
+    </button>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ID</dt>
+                <dd class="col-sm-9">@category.Id</dd>
+
+                <dt class="col-sm-3">Název kategorie</dt>
+                <dd class="col-sm-9">@category.Name</dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary"  @onclick="BackToList">
+                Zpět na seznam
+            </button>
+            <button class="btn btn-primary" @onclick="OnEdit">
+                Upravit kategorii
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private CategoryModel? category;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoryAsync();
+    }
+
+    private async Task LoadCategoryAsync()
+    {
+        try
+        {
+            isLoading = true;
+            category = await CategoryService.GetByIdAsync(Id);
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void BackToList()
+    {
+        Nav.NavigateTo("/admin/categories");
+    }
+
+    private void OnEdit()
+    {
+        Nav.NavigateTo($"/admin/categories/{Id}/edit");
+    }
+}

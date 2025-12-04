@@ -1,20 +1,21 @@
-﻿@page "/admin/products/create"
-@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+﻿@page "/admin/products/update/{Id:int}"
+@attribute [Authorize]
 
 @inject IProductAdminService productAdminService
 @inject NavigationManager Nav
 @inject MessageService MessageService
 @inject ICategoryService CategoryService
+@inject HttpClient Http
 
-@if(!canRender)
+@if (!canRender)
 {
     <p>Načítám...</p>
     return;
 }
 
-<h3>Vytvoření produktu</h3>
+<h3>Úprava produktu</h3>
 
-<EditForm Model="model" OnValidSubmit="PostProductsAsync">
+<EditForm Model="model" OnValidSubmit="PutProductAsync">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -41,7 +42,6 @@
                 <div class="col-md-6">
                     <label class="form-label">Kategorie</label>
                     <InputSelect class="form-select" @bind-Value="model.CategoryId">
-                        <option value="">-- vyberte kategorii --</option>
                         @foreach (var kvp in categories)
                         {
                             <option value="@kvp.Key">@kvp.Value</option>
@@ -71,9 +71,17 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Obrázek produktu</label>
-                    <InputFile OnChange="OnImageSelected" class="form-control" />
+
+                    <div class="mb-2">
+                        <img src="@Http.GetImageUrl(product.ImageUrl)"
+                             alt="Produkt"
+                             class="img-thumbnail"
+                             style="max-width: 220px; height: auto;" />
+                    </div>
+
                     <div class="form-text">
-                        Vyberte obrázek produktu (např. JPG/PNG).
+                        Tento obrázek nelze upravit na této stránce.
+                        Pro změnu použijte akci „Obrázek“ v seznamu produktů.
                     </div>
                 </div>
             </div>
@@ -84,16 +92,22 @@
                 Zpět na seznam
             </button>
             <button type="submit" class="btn btn-primary">
-                Vytvořit produkt
+                Upravit produkt
             </button>
         </div>
     </div>
 </EditForm>
 
+
 @code {
-    private CreateProductModel model = new();
+    [Parameter]
+    public int Id { get; set; }
+
+    private UpdateProductModel model = new();
+    private ProductModel product = new();
     private IDictionary<int, string> categories = new Dictionary<int, string>();
     private bool canRender = false;
+    private string categoryName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,29 +115,46 @@
         {
             categories = await CategoryService.GetAllCategiresAsync();
 
-            if (categories is null || categories.Count == 0)
+            if(categories is null || categories.Count == 0)
             {
                 MessageService.ShowError("Nejsou k dispozici žádné kategorie, prvně musíte nějaké vytvořit.");
                 Nav.NavigateTo("/admin/categories/create");
                 return;
             }
 
+            await SetProductAsync();
             canRender = true;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             MessageService.ShowError(ex.Message);
             BackToList();
         }
     }
 
-    private async Task PostProductsAsync()
+    private async Task SetProductAsync()
     {
         try
         {
-            await productAdminService.CreateAsync(model);
-            MessageService.ShowSuccess("Produkt byl vytvořen.");
-            Nav.NavigateTo("/admin/products");
+            product = await productAdminService.GetByIdAsync(Id);
+            model = product.ToUpdatemodel();
+            categoryName = product.CategoryName;
+            model.CategoryId = categories.First(c => c.Value == categoryName).Key;
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+    }
+
+    private async Task PutProductAsync()
+    {
+        try
+        {
+            await productAdminService.UpdateAsync(Id, model);
+            MessageService.ShowSuccess($"Produkt s ID: {Id} byl upraven.");
+            BackToList();
         }
         catch (Exception ex)
         {
@@ -134,18 +165,5 @@
     private void BackToList()
     {
         Nav.NavigateTo("/admin/products");
-    }
-
-    private void OnImageSelected(InputFileChangeEventArgs e)
-    {
-        var file = e.File;
-
-        if(file is null)
-        {
-            model.ImageFile = null;
-            return;
-        }
-
-        model.ImageFile = file;
     }
 }

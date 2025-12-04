@@ -24,8 +24,4 @@
     <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pages\Categories\" />
-  </ItemGroup>
-
 </Project>

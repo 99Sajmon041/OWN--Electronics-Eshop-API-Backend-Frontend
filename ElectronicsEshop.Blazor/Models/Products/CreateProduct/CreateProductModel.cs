@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ElectronicsEshop.Blazor.Models.Products.CreateProduct;
 
-public sealed class CreateProductRequest
+public sealed class CreateProductModel
 {
     [Required(ErrorMessage = "Kód produktu je povinný.")]
     [MaxLength(20, ErrorMessage = "Kód produktu může mít maximálně 20 znaků.")]
@@ -32,9 +32,6 @@ public sealed class CreateProductRequest
 
     [Range(0, 100000, ErrorMessage = "Množství skladem musí být mezi 0 a 100000.")]
     public int StockQty { get; set; }
-
-    [Required(ErrorMessage = "Musíte vybrat obrázek produktu.")]
-    public string ImageUrl { get; set; } = default!;
 
     [Required(ErrorMessage = "Soubor obrázku je povinný.")]
     public IBrowserFile? ImageFile { get; set; }
