@@ -7,39 +7,51 @@ using System.Security.Claims;
 
 namespace ElectronicsEshop.Blazor.Services.Auth;
 
-public sealed class ApiAuthenticationStateProvider(
-    ILocalStorageService localStorage,
-    HttpClient httpClient) : AuthenticationStateProvider
+public sealed class ApiAuthenticationStateProvider(ILocalStorageService localStorage, HttpClient httpClient) : AuthenticationStateProvider
 {
+
+    private readonly JwtSecurityTokenHandler _tokenHandler = new();
+    private readonly AuthenticationState _anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var token = await localStorage.GetItemAsync<string>(TokenConstant.TokenStorageKey);
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            return _anonymous;
+        }
+
+        JwtSecurityToken jwt;
+
+        try
+        {
+            jwt = _tokenHandler.ReadJwtToken(token);
+        }
+        catch
+        {
+            await LogoutAsync();
+            return _anonymous;
+        }
+
+        var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp)?.Value;
+
+        if(expClaim is not null && long.TryParse(expClaim, out var epxUnix))
+        {
+            var exp = DateTimeOffset.FromUnixTimeSeconds(epxUnix);
+
+            if (exp <= DateTimeOffset.UtcNow)
+            {
+                await LogoutAsync();
+                return _anonymous;
+            }
         }
 
         httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        ClaimsIdentity identity;
-
-        try
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-
-            identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
-        }
-        catch
-        {
-            await localStorage.RemoveItemAsync(TokenConstant.TokenStorageKey);
-            httpClient.DefaultRequestHeaders.Authorization = null;
-            identity = new ClaimsIdentity();
-        }
-
+        var identity = new ClaimsIdentity(jwt.Claims, "jwt");
         var user = new ClaimsPrincipal(identity);
+
         return new AuthenticationState(user);
     }
 
@@ -47,6 +59,13 @@ public sealed class ApiAuthenticationStateProvider(
     {
         var authState = await GetAuthenticationStateAsync();
         NotifyAuthenticationStateChanged(Task.FromResult(authState));
+    }
+
+    public async Task LogoutAsync()
+    {
+        await localStorage.RemoveItemAsync(TokenConstant.TokenStorageKey);
+        httpClient.DefaultRequestHeaders.Authorization = null;
+        MarkUserAsLoggedOut();
     }
 
     public void MarkUserAsLoggedOut()

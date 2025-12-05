@@ -3,13 +3,11 @@ using ElectronicsEshop.Blazor.Models.Products.CreateProduct;
 using ElectronicsEshop.Blazor.Models.Products.GetProducts;
 using ElectronicsEshop.Blazor.Models.Products.UpdateProduct;
 using ElectronicsEshop.Blazor.Utils;
-using ElectronicsEshop.Domain.Entities;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Xml.Linq;
 
 namespace ElectronicsEshop.Blazor.Services.Products;
 

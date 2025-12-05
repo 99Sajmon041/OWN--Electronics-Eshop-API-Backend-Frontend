@@ -24,7 +24,7 @@
 
                 <div class="col-md-3">
                     <label class="form-label">Hledat</label>
-                    <InputText class="form-control" @bind-Value="model.Q" />
+                    <input class="form-control" value="@model.Q" @oninput="OnSearchChanged"/>
                 </div>
 
                 <div class="col-md-2">
@@ -160,30 +160,37 @@ else
 
                             <div class="form-check form-switch align-self-center me-1">
                                 <input type="checkbox" class="form-check-input"
-                                checked="@product.IsActive" @onchange="e => OnActiveChangedAsync(product.Id, (bool)e.Value!)"/>
+                                       checked="@product.IsActive"
+                                       @onchange="e => OnActiveChangedAsync(product.Id, (bool)e.Value!)" />
                             </div>
 
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenDiscountModal(product.Id, product.DiscountPercentage)">
+                            <button class="btn btn-sm btn-outline-secondary btn-action me-1"
+                                    @onclick="() => OpenDiscountModal(product.Id, product.DiscountPercentage)">
                                 Sleva
                             </button>
 
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenStockModal(product.Id, product.StockQty)">
+                            <button class="btn btn-sm btn-outline-secondary btn-action me-1"
+                                    @onclick="() => OpenStockModal(product.Id, product.StockQty)">
                                 Sklad
                             </button>
 
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenImageModal(product.Id)">
+                            <button class="btn btn-sm btn-outline-secondary btn-action me-1"
+                                    @onclick="() => OpenImageModal(product.Id)">
                                 Obrázek
                             </button>
 
-                            <button class="btn btn-sm btn-secondary" @onclick="() => RedirectToDetail(product.Id)">
+                            <button class="btn btn-sm btn-secondary btn-action me-1"
+                                    @onclick="() => RedirectToDetail(product.Id)">
                                 Detail
                             </button>
 
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RedirectToUpdate(product.Id)">
+                            <button class="btn btn-sm btn-primary btn-action me-1"
+                                    @onclick="() => RedirectToUpdate(product.Id)">
                                 Upravit
                             </button>
 
-                            <button class="btn btn-sm btn-primary" @onclick="() => DeleteAsync(product.Id)">
+                            <button class="btn btn-sm btn-danger btn-action me-1"
+                                    @onclick="() => DeleteAsync(product.Id)">
                                 Smazat
                             </button>
 
@@ -321,6 +328,14 @@ else
     private void OnCreateProduct()
     {
         Nav.NavigateTo("/admin/products/create");
+    }
+
+
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        model.Q = e.Value?.ToString() ?? string.Empty;
+        model.Page = 1;
+        await LoadProductsAsync();
     }
 
     // Update stock quantity action------------------------------------------------------------------

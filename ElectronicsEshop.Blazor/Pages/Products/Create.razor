@@ -41,7 +41,6 @@
                 <div class="col-md-6">
                     <label class="form-label">Kategorie</label>
                     <InputSelect class="form-select" @bind-Value="model.CategoryId">
-                        <option value="">-- vyberte kategorii --</option>
                         @foreach (var kvp in categories)
                         {
                             <option value="@kvp.Key">@kvp.Value</option>
@@ -51,12 +50,18 @@
 
                 <div class="col-md-3">
                     <label class="form-label">Cena</label>
-                    <InputNumber class="form-control" @bind-Value="model.Price" />
+                    <div class="input-group">
+                        <InputNumber @bind-Value="model.Price" class="form-control" step="0.01" />
+                        <span class="input-group-text">Kč</span>
+                    </div>
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label">Sleva (%)</label>
-                    <InputNumber class="form-control" @bind-Value="model.DiscountPercentage" />
+                    <div class="input-group">
+                        <InputNumber @bind-Value="model.DiscountPercentage" class="form-control" step="0.01" />
+                        <span class="input-group-text">%</span>
+                    </div>
                 </div>
 
                 <div class="col-md-3">
@@ -107,7 +112,7 @@
                 Nav.NavigateTo("/admin/categories/create");
                 return;
             }
-
+            model.CategoryId = categories.First().Key;
             canRender = true;
         }
         catch (Exception ex)

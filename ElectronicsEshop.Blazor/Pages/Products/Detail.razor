@@ -5,6 +5,7 @@
 @inject MessageService MessageService
 @inject IProductAdminService ProductAdminService
 @inject IJSRuntime JS
+@inject HttpClient Http
 
 
 <h3>Detail produktu</h3>
@@ -38,7 +39,7 @@ else
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
-                    <img src="@model.ImageUrl"
+                    <img src="@Http.GetImageUrl(model.ImageUrl)"
                             alt="@model.Name"
                             class="img-fluid img-thumbnail mb-2"
                             style="max-width: 220px; height: auto;" />
@@ -103,7 +104,12 @@ else
 
     private async Task DeleteAsync(int productId)
     {
-        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat produkt '{model.Name}' (ID: {productId})?");      
+        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat produkt {model.Name} s ID: {productId}?");
+
+        if(!confirmed)
+        {
+            return;
+        }
 
         try
         {

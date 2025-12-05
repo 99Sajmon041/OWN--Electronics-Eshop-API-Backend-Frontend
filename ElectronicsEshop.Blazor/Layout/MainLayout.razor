@@ -38,7 +38,12 @@
 @code{
     protected override void OnInitialized()
     {
-        MessageService.onChange += StateHasChanged;
+        MessageService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        MessageService.OnChange -= StateHasChanged;
     }
 
     private void ClearMessage() => MessageService.Clear();

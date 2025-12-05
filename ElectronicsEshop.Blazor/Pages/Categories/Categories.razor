@@ -88,7 +88,7 @@ else
                     <td>@category.Id</td>
                     <td>@category.Name</td>
                     <td>
-                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToDetail(category.Id)">
+                        <button class="btn btn-sm btn-secondary" @onclick="() => NavigateToDetail(category.Id)">
                             Detail
                         </button>
                         <button class="btn btn-sm btn-primary" @onclick="() => NavigateToUpdate(category.Id)">
@@ -159,7 +159,7 @@ else
         if (!canGoNext)
             return;
 
-        model.PageSize++;
+        model.Page++;
         await LoadCategoriesAsync();
     }
 
