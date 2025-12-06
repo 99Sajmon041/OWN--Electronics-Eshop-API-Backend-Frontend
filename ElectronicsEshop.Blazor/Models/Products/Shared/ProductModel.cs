@@ -1,4 +1,4 @@
-﻿namespace ElectronicsEshop.Blazor.Models.Products.GetProducts;
+﻿namespace ElectronicsEshop.Blazor.Models.Products.Shared;
 
 public sealed class ProductModel
 {

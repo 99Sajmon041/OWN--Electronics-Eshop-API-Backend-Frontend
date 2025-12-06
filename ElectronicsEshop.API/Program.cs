@@ -3,7 +3,7 @@ using ElectronicsEshop.API.Interfaces;
 using ElectronicsEshop.API.Middlewares;
 using ElectronicsEshop.API.Services;
 using ElectronicsEshop.Application.Abstractions;
-using ElectronicsEshop.Application.Extensions;
+using ElectronicsEshop.Application.Orders.Extensions;
 using ElectronicsEshop.Application.Products.Mapping;
 using ElectronicsEshop.Infrastructure.Email;
 using ElectronicsEshop.Infrastructure.Extensions;

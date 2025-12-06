@@ -1,78 +1,118 @@
-﻿@page "/admin/products/detail/{Id:int}"
-@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+﻿@page "/products/detail/{Id:int}"
 
-@inject NavigationManager Nav
-@inject MessageService MessageService
-@inject IProductAdminService ProductAdminService
-@inject IJSRuntime JS
 @inject HttpClient Http
+@inject IProductService ProductService
+@inject MessageService MessageService
+@inject NavigationManager Nav
 
-
-<h3>Detail produktu</h3>
-
-@if (model.Id == 0)
+@if(isLoading)
 {
-    <p>Načítám produkt...</p>
+    <p>Načítám...</p>
 }
 else
 {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <button class="btn btn-sm btn-secondary" @onclick="BackToList">
-            Zpět na seznam
-        </button>
+    <div class="container mt-4">
 
-        <div>
-            <button class="btn btn-sm btn-warning me-2" @onclick="() => ReturnToUpdate(model.Id)">
-                Upravit
-            </button>
-            <button class="btn btn-sm btn-danger" @onclick="() => DeleteAsync(model.Id)">
-                Smazat
-            </button>
-        </div>
-    </div>
+        <h3 class="mb-4">Detail produktu @model.Name</h3>
 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>@model.Name</span>
-            <span class="badge bg-secondary">ID: @model.Id</span>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <img src="@Http.GetImageUrl(model.ImageUrl)"
-                            alt="@model.Name"
-                            class="img-fluid img-thumbnail mb-2"
-                            style="max-width: 220px; height: auto;" />
+        <div class="card shadow-sm">
+            <div class="row g-0">
+
+                <!-- Obrázek vlevo -->
+                <div class="col-md-5 d-flex align-items-center justify-content-center p-3">
+                    @if (!string.IsNullOrWhiteSpace(model.ImageUrl))
+                    {
+                        <img src="@Http.GetImageUrl(model.ImageUrl)"
+                             class="img-fluid rounded"
+                             alt="@model.Name"
+                             style="max-height: 350px; object-fit: contain;" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                             style="width: 100%; height: 350px;">
+                            <span class="text-muted">Bez obrázku</span>
+                        </div>
+                    }
                 </div>
-                <div class="col-md-8">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Název</dt>
-                        <dd class="col-sm-8">@model.Name</dd>
 
-                        <dt class="col-sm-4">Cena</dt>
-                        <dd class="col-sm-8">
-                            @model.Price.ToString("N0") Kč
-                        </dd>
+                <div class="col-md-7 p-4 ps-4">
+                    <h2 class="fw-bold mb-3">@model.Name</h2>
 
-                        <dt class="col-sm-4">Název kategorie</dt>
-                        <dd class="col-sm-8">@model.CategoryName</dd>
+                    <p class="text-muted mb-1">
+                        Kategorie: <strong>@model.CategoryName</strong>
+                    </p>
 
-                        <dt class="col-sm-4">Popis</dt>
-                        <dd class="col-sm-8">
-                            <p class="mb-0">@model.Description</p>
-                        </dd>
-                    </dl>
+                    @if (!string.IsNullOrWhiteSpace(model.Description))
+                    {
+                        <p class="mb-3">
+                            @model.Description
+                        </p>
+                    }
+
+                    @if (model.DiscountPercentage > 0)
+                    {
+                        <h4 class="text-danger fw-bold mb-1">
+                            @model.FinalPrice.ToString("C")
+                            <span class="badge bg-danger ms-2">
+                                -@model.DiscountPercentage %
+                            </span>
+                        </h4>
+
+                        <p class="text-muted text-decoration-line-through mb-2">
+                            Původní cena: @model.Price.ToString("C")
+                        </p>
+                    }
+                    else
+                    {
+                        <h4 class="fw-bold mb-2">
+                            @model.Price.ToString("C")
+                        </h4>
+                    }
+
+                    <p class="mt-2 mb-4">
+                        Dostupnost:
+                        @if (model.StockQty > 0)
+                        {
+                            <span class="text-success fw-bold">
+                                Skladem (@model.StockQty ks)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-danger fw-bold">
+                                Není skladem
+                            </span>
+                        }
+                    </p>
+
+                    <div class="mt-2 d-flex gap-2">
+                        <button class="btn btn-primary"
+                                disabled="@(model.StockQty <= 0)"
+                                @onclick="() => AddToCartAsync(model.Id)">
+                            Přidat do košíku
+                        </button>
+
+                        <button class="btn btn-outline-secondary"
+                                @onclick="BackToList">
+                            Zpět na produkty
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
 }
 
+
 @code {
     [Parameter]
     public int Id { get; set; }
 
-    private ProductModel model = new();
+    ProductModel model = new();
+
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,44 +123,28 @@ else
     {
         try
         {
-            model = await ProductAdminService.GetByIdAsync(Id);
+            isLoading = true;
+            model = await ProductService.GetByIdAsync(Id);
         }
         catch (Exception ex)
         {
             MessageService.ShowError(ex.Message);
             BackToList();
         }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
-    private void ReturnToUpdate(int productId)
+    private async Task AddToCartAsync(int productId)
     {
-        Nav.NavigateTo($"/admin/products/update/{productId}");
+        // TODO: napoj na CartService / API (POST /api/cart/items)
+        await Task.CompletedTask;
     }
 
     private void BackToList()
     {
-        Nav.NavigateTo("/admin/products");
-    }
-
-    private async Task DeleteAsync(int productId)
-    {
-        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat produkt {model.Name} s ID: {productId}?");
-
-        if(!confirmed)
-        {
-            return;
-        }
-
-        try
-        {
-            await ProductAdminService.DeleteAsync(productId);
-
-            MessageService.ShowSuccess($"Produkt s ID: {productId} byl odstraněn.");
-            BackToList();
-        }
-        catch (Exception ex)
-        {
-            MessageService.ShowError(ex.Message);
-        }
+        Nav.NavigateTo("/");
     }
 }

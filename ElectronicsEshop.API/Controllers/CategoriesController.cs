@@ -81,6 +81,7 @@ namespace ElectronicsEshop.API.Controllers
             return NoContent();
         }
 
+        [AllowAnonymous]
         [HttpGet("all")]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(IReadOnlyList<CategoryDto>), StatusCodes.Status200OK)]

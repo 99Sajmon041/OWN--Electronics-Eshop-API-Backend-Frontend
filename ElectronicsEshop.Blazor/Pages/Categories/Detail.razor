@@ -5,7 +5,7 @@
 @inject ICategoryService CategoryService
 @inject MessageService MessageService
 
-<h3>Detail kategorie</h3>
+<h3>Detail kategorie @model.Name</h3>
 
 @if(isLoading)
 {
@@ -13,7 +13,7 @@
          Načítám kategorii...
     </div>
 }
-else if(category is null)
+else if(model is null)
 {
     <div class="alert alert-danger">
         Kategorie nebyla nalezena.
@@ -29,10 +29,10 @@ else
         <div class="card-body">
             <dl class="row">
                 <dt class="col-sm-3">ID</dt>
-                <dd class="col-sm-9">@category.Id</dd>
+                <dd class="col-sm-9">@model.Id</dd>
 
                 <dt class="col-sm-3">Název kategorie</dt>
-                <dd class="col-sm-9">@category.Name</dd>
+                <dd class="col-sm-9">@model.Name</dd>
             </dl>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2">
@@ -50,7 +50,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private CategoryModel? category;
+    private CategoryModel? model;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
@@ -63,7 +63,7 @@ else
         try
         {
             isLoading = true;
-            category = await CategoryService.GetByIdAsync(Id);
+            model = await CategoryService.GetByIdAsync(Id);
         }
         catch(Exception ex)
         {

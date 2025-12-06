@@ -3,7 +3,6 @@ using ElectronicsEshop.Application.Payments.DTOs;
 using ElectronicsEshop.Application.Payments.Queries.GetPayments;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using ElectronicsEshop.Domain.Enums;
 
@@ -15,11 +14,11 @@ namespace ElectronicsEshop.API.Controllers
     public class AdminPaymentsController(IMediator mediator) : ControllerBase
     {
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedResult<PaymentDto>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status200OK, Type = typeof(PagedResult<PaymentDto>))]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<PagedResult<PaymentDto>>> GetAll([FromQuery] GetPaymentsQuery query, CancellationToken ct)
         {
             var result = await mediator.Send(query, ct);

@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace ElectronicsEshop.Blazor.Models.Products.CreateProduct;
+namespace ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
 
-public sealed class CreateProductModel
+public sealed class UpdateProductModel
 {
     [Required(ErrorMessage = "Kód produktu je povinný.")]
     [MaxLength(20, ErrorMessage = "Kód produktu může mít maximálně 20 znaků.")]
@@ -33,6 +32,6 @@ public sealed class CreateProductModel
     [Range(0, 100000, ErrorMessage = "Množství skladem musí být mezi 0 a 100000.")]
     public int StockQty { get; set; }
 
-    [Required(ErrorMessage = "Soubor obrázku je povinný.")]
-    public IBrowserFile? ImageFile { get; set; }
+    [Required(ErrorMessage = "URL obrázku je povinná.")]
+    public string? ImageUrl { get; set; } = default!;
 }

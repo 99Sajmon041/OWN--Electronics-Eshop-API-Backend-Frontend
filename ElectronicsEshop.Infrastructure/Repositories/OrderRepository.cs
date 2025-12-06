@@ -101,4 +101,12 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
         await db.Orders.AddAsync(order, ct);
         await db.SaveChangesAsync(ct);
     }
+
+    public async Task<int> GetOrdersCountForUserAsync(string userId, CancellationToken ct)
+    {
+        return await db.Orders
+            .AsNoTracking()
+            .Where(o => o.ApplicationUserId == userId)
+            .CountAsync(ct);
+    }
 }

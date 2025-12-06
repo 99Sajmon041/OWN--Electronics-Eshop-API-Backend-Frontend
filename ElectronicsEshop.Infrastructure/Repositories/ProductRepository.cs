@@ -24,10 +24,11 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
         if(!string.IsNullOrWhiteSpace(q))
         {
             var t = q.Trim().ToLower();
+
             query = query.Where(p =>
                 p.Name.ToLower().Contains(t) ||
                 p.ProductCode.ToLower().Contains(t) ||
-                p.Description.ToLower().Contains(t));
+                (p.Description != null && p.Description.ToLower().Contains(t)));
         }
 
         switch ((sort ?? "name").ToLowerInvariant())

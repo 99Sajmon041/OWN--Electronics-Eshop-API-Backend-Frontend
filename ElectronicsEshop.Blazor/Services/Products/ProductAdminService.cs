@@ -1,7 +1,8 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Products.CreateProduct;
-using ElectronicsEshop.Blazor.Models.Products.GetProducts;
-using ElectronicsEshop.Blazor.Models.Products.UpdateProduct;
+using ElectronicsEshop.Blazor.Models.Products.CreateAdminProduct;
+using ElectronicsEshop.Blazor.Models.Products.GetAdminProducts;
+using ElectronicsEshop.Blazor.Models.Products.Shared;
+using ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.WebUtilities;
@@ -13,7 +14,7 @@ namespace ElectronicsEshop.Blazor.Services.Products;
 
 public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminService
 {
-    public async Task<PagedResult<ProductModel>> GetAllAsync(ProductRequest request, CancellationToken ct = default)
+    public async Task<PagedResult<ProductModel>> GetAllAsync(ProductAdminRequest request, CancellationToken ct = default)
     {
         var query = new Dictionary<string, string?>
         {
@@ -23,10 +24,10 @@ public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminSe
             ["order"] = request.Order.ToString(),
             ["categoryId"] = request.CategoryId?.ToString(),
             ["isActive"] = request.IsActive?.ToString(),
-            ["priceMin"] = request.PriceMin?.ToString(CultureInfo.InvariantCulture),
-            ["priceMax"] = request.PriceMax?.ToString(CultureInfo.InvariantCulture),
-            ["stockMin"] = request.StockMin?.ToString(),
-            ["stockMax"] = request.StockMax?.ToString(),
+            ["priceMin"] = string.Empty,
+            ["priceMax"] = string.Empty,
+            ["stockMin"] = string.Empty,
+            ["stockMax"] = string.Empty,
             ["q"] = request.Q
         };
 
@@ -41,10 +42,10 @@ public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminSe
         if(!response.IsSuccessStatusCode)
         {
                 var message = await response.ReadProblemMessageAsync("Nepodařilo se načíst produkty.");
-                throw new InvalidOperationException(message);
+                throw new KeyNotFoundException(message);
         }
 
-        var data = await httpClient.GetFromJsonAsync<PagedResult<ProductModel>>(url, ct);
+        var data = await response.Content.ReadFromJsonAsync<PagedResult<ProductModel>>(ct);
 
         return data ?? new PagedResult<ProductModel>
         { 
@@ -65,8 +66,8 @@ public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminSe
         using var form = new MultipartFormDataContent();
 
         var file = request.ImageFile;
-        var fileContent = new StreamContent(file.OpenReadStream(5 * 1024 * 1024));
-        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+        var fileContent = new StreamContent(file.OpenReadStream(5 * 1024 * 1024, ct));
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
 
         form.Add(fileContent, "ImageFile", file.Name);
 
@@ -198,11 +199,6 @@ public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminSe
 
         var data = await response.Content.ReadFromJsonAsync<ProductModel>(ct);
 
-        if (data is null)
-        {
-            throw new KeyNotFoundException("Produkt nebyl nalezen.");
-        }
-
-        return data;
+        return data ?? throw new KeyNotFoundException("Produkt nebyl nalezen.");
     }
 }

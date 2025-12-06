@@ -1,5 +1,5 @@
-﻿using ElectronicsEshop.Blazor.Models.Products.GetProducts;
-using ElectronicsEshop.Blazor.Models.Products.UpdateProduct;
+﻿using ElectronicsEshop.Blazor.Models.Products.Shared;
+using ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
 
 namespace ElectronicsEshop.Blazor.Models.Mappers;
 

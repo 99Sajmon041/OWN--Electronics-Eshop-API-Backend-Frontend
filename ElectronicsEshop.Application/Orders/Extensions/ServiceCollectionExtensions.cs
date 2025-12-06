@@ -5,7 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ElectronicsEshop.Application.Extensions;
+namespace ElectronicsEshop.Application.Orders.Extensions;
 
 public static class ServiceCollectionExtensions
 {

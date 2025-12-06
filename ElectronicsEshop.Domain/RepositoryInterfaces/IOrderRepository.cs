@@ -12,4 +12,6 @@ public interface IOrderRepository
     Task UpdateOrderStatusAsync(Order order, OrderStatus orderStatus, CancellationToken ct);
     Task<Order?> GetByIdAsync(int id, CancellationToken ct);
     Task CreateAsync(Order order, CancellationToken ct);
+    Task<int> GetOrdersCountForUserAsync(string userId, CancellationToken ct);
 }
+    

@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using ElectronicsEshop.Blazor;
+using ElectronicsEshop.Blazor.Services.ApplicationUsers;
 using ElectronicsEshop.Blazor.Services.Auth;
 using ElectronicsEshop.Blazor.Services.Categories;
 using ElectronicsEshop.Blazor.Services.Products;
@@ -18,6 +19,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStatePr
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

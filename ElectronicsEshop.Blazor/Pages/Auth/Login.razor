@@ -1,6 +1,8 @@
 ﻿@page "/login"
-@using ElectronicsEshop.Blazor.Models.Auth.Login
-@using ElectronicsEshop.Blazor.Services.Auth
+
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject MessageService MessageService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
@@ -23,7 +25,7 @@
     </div>
 
     <div class="form-check mb-3">
-        <InputCheckbox class="form-check-input"@bind-Value="model.RememberMe" />
+        <InputCheckbox class="form-check-input" @bind-Value="model.RememberMe" />
         <label class="form-check-label">Zapamatovat si mě</label>
     </div>
 
@@ -33,14 +35,19 @@
 @code {
     private LoginModel model = new();
 
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    [Parameter] public string? ReturnUrl { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
 
         if (authState.User.Identity?.IsAuthenticated is true)
         {
-            MessageService.ShowInfo("Jste již přihlášen. Přesměrováno na hlavní stránku.");
-            Nav.NavigateTo("/");
+            var target = GetSafeReturnUrl();
+            MessageService.ShowInfo("Jste již přihlášen. Přesměrováno na požadovanou stránku.");
+
+            Nav.NavigateTo(target);
         }
     }
 
@@ -51,11 +58,26 @@
         if (result.Success)
         {
             MessageService.ShowSuccess("Úspěšně přihlášen.");
-            Nav.NavigateTo("/");
+
+            var target = GetSafeReturnUrl();
+            Nav.NavigateTo(target);
         }
         else
         {
             MessageService.ShowError(result.ErrorMessage ?? "Přihlášení se nezdařilo.");
         }
+    }
+
+    private string GetSafeReturnUrl()
+    {
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+            return "/";
+
+        var decoded = Uri.UnescapeDataString(ReturnUrl);
+
+        if (!decoded.StartsWith("/"))
+            return "/";
+
+        return decoded;
     }
 }

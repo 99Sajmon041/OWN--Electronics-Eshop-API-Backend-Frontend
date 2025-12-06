@@ -1,4 +1,5 @@
 ﻿@page "/admin/products/update/{Id:int}"
+@using ElectronicsEshop.Blazor.Models.Products.Shared
 @attribute [Authorize]
 
 @inject IProductAdminService productAdminService
@@ -13,7 +14,7 @@
     return;
 }
 
-<h3>Úprava produktu</h3>
+<h3>Úprava produktu @model.Name</h3>
 
 <EditForm Model="model" OnValidSubmit="PutProductAsync">
     <DataAnnotationsValidator />

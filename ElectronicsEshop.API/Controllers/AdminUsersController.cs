@@ -33,7 +33,7 @@ namespace ElectronicsEshop.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int:min(1)}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -58,7 +58,7 @@ namespace ElectronicsEshop.API.Controllers
             return CreatedAtAction(nameof(Get), new { id }, new { id });
         }
 
-        [HttpDelete("{id:int:min(1)}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -71,7 +71,7 @@ namespace ElectronicsEshop.API.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id:int:min(1)}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]

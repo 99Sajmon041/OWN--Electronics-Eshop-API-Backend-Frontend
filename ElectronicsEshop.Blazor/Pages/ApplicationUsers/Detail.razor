@@ -1,0 +1,116 @@
+﻿@page "/admin/users/detail/{Id:string}"
+
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject NavigationManager Nav
+@inject MessageService MessageService
+@inject IApplicationUsersService ApplicationUsersService
+
+@if (isLoading)
+{
+    <p>Načítám uživatele…</p>
+}
+else
+{
+    <h3>Detail uživatele: @model.FirstName @model.LastName</h3>
+
+    <button class="btn btn-secondary mb-3" @onclick="BackToList">
+        Zpět na seznam
+    </button>
+
+    <dl class="row">
+
+        <dt class="col-sm-3">Jméno</dt>
+        <dd class="col-sm-9">@model.FirstName</dd>
+
+        <dt class="col-sm-3">Příjmení</dt>
+        <dd class="col-sm-9">@model.LastName</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@model.Email</dd>
+
+        <dt class="col-sm-3">Aktivní</dt>
+        <dd class="col-sm-9">
+            @if (model.Active)
+            {
+                <span class="badge bg-success">Ano</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Ne</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Datum narození</dt>
+        <dd class="col-sm-9">@model.DateOfBirth.ToString("dd.MM.yyyy")</dd>
+
+        <dt class="col-sm-3">Ulice</dt>
+        <dd class="col-sm-9">@model.Address.Street</dd>
+
+        <dt class="col-sm-3">Číslo domu</dt>
+        <dd class="col-sm-9">@model.Address.NumberOfHouse</dd>
+
+        <dt class="col-sm-3">PSČ</dt>
+        <dd class="col-sm-9">@model.Address.PostalCode</dd>
+
+        <dt class="col-sm-3">Město</dt>
+        <dd class="col-sm-9">@model.Address.Town</dd>
+
+        <dt class="col-sm-3">Počet objednávek</dt>
+        <dd class="col-sm-9">@model.OrdersCount</dd>
+
+    </dl>
+
+    <div class="mt-4">
+        <button class="btn btn-danger" @onclick="OnDeleteAsync">
+            Odstranit uživatele
+        </button>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = default!;
+
+    ApplicationUserModel model = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserAsync();
+    }
+
+    private async Task LoadUserAsync()
+    {
+        try
+        {
+            isLoading = true;
+            model = await ApplicationUsersService.GetByIdAsync(Id);
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+    }
+
+    private async Task OnDeleteAsync()
+    {
+        try
+        {
+            await ApplicationUsersService.DeleteAsync(Id);
+            BackToList();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private void BackToList()
+    {
+        Nav.NavigateTo("admin/users");
+    }
+}

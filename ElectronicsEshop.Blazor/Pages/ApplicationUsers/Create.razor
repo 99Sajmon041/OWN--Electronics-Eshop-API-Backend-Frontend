@@ -1,0 +1,13 @@
+﻿@page "/admin/users/create"
+
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject NavigationManager Nav
+@inject MessageService MessageService
+@inject IApplicationUsersService ApplicationUsersService
+
+<h3>Vytvoření uživatele</h3>
+
+@code {
+
+}

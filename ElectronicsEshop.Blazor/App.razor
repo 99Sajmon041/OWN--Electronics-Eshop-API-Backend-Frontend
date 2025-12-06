@@ -1,21 +1,24 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-
-<CascadingAuthenticationState>
+﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    <PageTitle>Přístup zamítnut</PageTitle>
-                    <h1>Přístup zamítnut</h1>
-                    <p>Pro vstup na tuto stránku se prosím přihlaste jako administrátor.</p>
+                <NotAuthorized Context="authContext">
+                    @if (authContext.User.Identity?.IsAuthenticated == true)
+                    {
+                        <p>Nemáte oprávnění k přístupu na tuto stránku.</p>
+                    }
+                    else
+                    {
+                        <RedirectToLogin />
+                    }
                 </NotAuthorized>
+                <Authorizing>
+                    <p>Authorizing...</p>
+                </Authorizing>
             </AuthorizeRouteView>
         </Found>
         <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Omlouváme se, na této stránce nic není..</p>
-            </LayoutView>
+            <NotFoundPage />
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
