@@ -9,6 +9,7 @@ public sealed class CreateUserCommand : IRequest<string>
     public string LastName { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string UserName => Email;
+    public string PhoneNumber { get; set; } = default!;
     public string Password { get; set; } = default!;
     public string Role { get; set; } = default!;
     public DateOnly DateOfBirth { get; set; }

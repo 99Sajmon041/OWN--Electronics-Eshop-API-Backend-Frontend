@@ -117,3 +117,11 @@ code {
     min-width: 80px;
     text-align: center;
 }
+
+.detail-row:nth-child(odd) {
+    background-color: #f8f9fa;
+}
+
+.detail-row:nth-child(even) {
+    background-color: #ffffff;
+}

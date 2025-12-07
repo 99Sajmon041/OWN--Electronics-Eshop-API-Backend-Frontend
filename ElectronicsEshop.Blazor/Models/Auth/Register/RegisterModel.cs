@@ -19,6 +19,11 @@ public sealed class RegisterModel
     [EmailAddress(ErrorMessage = "Zadejte e-mail ve správném formátu.")]
     public string Email { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Telefonní číslo je povinný údaj.")]
+    [MaxLength(20, ErrorMessage = "Maximální délka telefonního čísla je 20 znaků.")]
+    [RegularExpression(@"^[0-9+\s]*$", ErrorMessage = "Telefonní číslo může obsahovat pouze číslice, mezery a znak +.")]
+    public string PhoneNumber { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Heslo je povinný údaj.")]
     [MinLength(8, ErrorMessage = "Minimální délka hesla je 8 znaků.")]
     public string Password { get; set; } = string.Empty;

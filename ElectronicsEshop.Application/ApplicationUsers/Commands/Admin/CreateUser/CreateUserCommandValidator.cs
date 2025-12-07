@@ -19,6 +19,12 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .NotEmpty().WithMessage("E-Mail je povinný údaj.")
             .EmailAddress().WithMessage("Zadejte E-Mail ve správném formátu.");
 
+        RuleFor(u => u.PhoneNumber)
+         .NotEmpty().WithMessage("Telefonní číslo je povinný údaj.")
+         .MaximumLength(20).WithMessage("Maximální délka telefonního čísla je 20 znaků.")
+         .Matches(@"^[0-9+\s]*$").WithMessage("Telefonní číslo může obsahovat pouze číslice, mezery a znak +.");
+
+
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Heslo je povinný údaj.")
             .MinimumLength(8).WithMessage("Minimální délka hesla je 8 znaků.")

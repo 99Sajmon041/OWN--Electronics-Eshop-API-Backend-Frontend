@@ -1,0 +1,375 @@
+﻿@page "/admin/users"
+
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject MessageService MessageService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IApplicationUsersService ApplicationUsersService
+@inject IRolesService RoleService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Správa uživatelů</h3>
+
+    <button class="btn btn-primary" @onclick="OnCreateUser">
+        Vytvořit uživatele
+    </button>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+
+            <div class="col-md-2">
+                <label class="form-label">Na stránku</label>
+                <select class="form-select" @onchange="OnPageSizeChanged">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@if(isLoading)
+{
+    <div class="alert alert-info">
+        <p>Načítám uživatele...</p>
+    </div>
+}
+else
+{
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            Stránka @users.Page / @totalPages,
+            celkem @users.TotalCount uživatelů
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary"
+                    @onclick="PreviousPageAsync"
+                    disabled="@(!canGoPrevious)">
+                Předchozí
+            </button>
+            <button class="btn btn-outline-secondary"
+                    @onclick="NextPageAsync"
+                    disabled="@(!canGoNext)">
+                Další
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-sm table-striped align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Křestní jméno</th>
+                <th>Příjmení</th>
+                <th>E-mail</th>
+                <th>Telefon</th>
+                <th>Aktivní</th>
+                <th>Datum narození</th>
+                <th>Počet objednávek</th>
+                <th>Ulice</th>
+                <th>Číslo domu</th>
+                <th>PSČ</th>
+                <th>Město</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users.Items)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.PhoneNumber</td>
+                    <td>
+                        @if(user.Active)
+                        {
+                            <span class="badge bg-success">Aktivní</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Neaktivní</span>
+                        }
+                    </td>
+                    <td>@user.DateOfBirth</td>
+                    <td>@user.OrdersCount</td>
+                    <td>@user.Address.Street</td>
+                    <td>@user.Address.NumberOfHouse</td>
+                    <td>@user.Address.PostalCode</td>
+                    <td>@user.Address.Town</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1 justify-content-end">
+
+                            <button class="btn btn-sm btn-outline-secondary btn-action me-1"
+                                    @onclick="() => OpenChangeRoleModal(user.Id)" disabled="@(currentUserId == user.Id)">
+                                Změnit roli
+                            </button>
+
+                            <button class="btn btn-sm btn-primary btn-action me-1"
+                                    @onclick="() => RedirectToUsersOrders(user.Id)">
+                                Zobrazit objednávky
+                            </button>
+
+                            <button class="btn btn-sm btn-secondary btn-action me-1"
+                                    @onclick="() => RedirectToDetail(user.Id)">
+                                Detail
+                            </button>
+
+                            <button class="btn btn-sm btn-danger btn-action me-1"
+                                    @onclick="() => OnDeleteUser(user.Id)" disabled="@(user.Id == currentUserId)">
+                                Smazat
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<ModalDialog IsOpen="@isRoleModalOpen"
+       Title="Změna role uživatele"
+       ErrorMessage="@roleModalError"
+       IsBusy="@isRoleModalBusy"
+       CancelText="Zrušit"
+       SaveText="Uložit změny"
+       OnCancel="CloseChangeRoleModal"
+       OnSave="SaveChangeRoleAsync">
+
+    <div class="mb-3">
+        <label class="form-label">Uživatel</label>
+        <input class="form-control" value="@selectedUserName" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Role</label>
+        <select class="form-select" @bind="selectedRole">
+            <option value="">-- Vyberte roli --</option>
+            @foreach (var role in availableRoles)
+            {
+                <option value="@role">@role</option>
+            }
+        </select>
+    </div>
+
+</ModalDialog>
+
+
+@code {
+    private PagedResult<ApplicationUserModel> users = new();
+    private CommonPageRequest request = new();
+    private bool isLoading = true;
+
+    private int totalPages => users is null || users.TotalCount == 0
+        ? 0
+        : (int)Math.Ceiling((double)users.TotalCount / users.PageSize);
+
+    private bool canGoPrevious => users is not null && users.Page > 1;
+    private bool canGoNext => users is not null && users.Page < totalPages;
+
+    private string? currentUserId;
+    private bool isRoleModalOpen;
+    private bool isRoleModalBusy;
+    private string? roleModalError;
+    private string? selectedUserId;
+    private string selectedUserName = string.Empty;
+    private string? selectedRole;
+    private IEnumerable<string> availableRoles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        currentUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        availableRoles = await RoleService.GetUserRolesAsync();
+
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            isLoading = true;
+            users = await ApplicationUsersService.GetAllAsync(request);
+
+            if (!users.Items.Any())
+            {
+                MessageService.ShowInfo("Žádní uživatelé nebyly nalezeni.");
+            }
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            NavToHome();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavToHome()
+    {
+        Nav.NavigateTo("/");
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (!canGoPrevious)
+        {
+            return;
+        }
+
+        request.Page--;
+        await LoadUsers();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if(!canGoNext)
+        {
+            return;
+        }
+
+        request.Page++;
+        await LoadUsers();
+    }
+
+    private void OnCreateUser()
+    {
+        Nav.NavigateTo("/admin/users/create");
+    }
+
+    private void RedirectToDetail(string userId)
+    {
+        Nav.NavigateTo($"/admin/users/detail/{userId}");
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if(int.TryParse(e.Value?.ToString(), out var pageSize) && pageSize > 0)
+        {
+            request.PageSize = pageSize;
+        }
+        else
+        {
+            request.PageSize = 10;
+        }
+
+        request.Page = 1;
+        await LoadUsers();
+    }
+
+    private async Task OnDeleteUser(string userId)
+    {
+        if(userId == currentUserId)
+        {
+            MessageService.ShowError("Nemůžete odstranit sami sebe.");
+            return;
+        }
+
+        var user = users.Items.FirstOrDefault(u => u.Id == userId);
+        var fullName = user is not null ? $"{user.FirstName} {user.LastName}" : string.Empty;
+
+
+        var confirmed = await JS.ConfirmAction($"Opravdu chcete smazat uživatele {fullName} ?");
+
+        if(!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            await ApplicationUsersService.DeleteAsync(userId);
+            MessageService.ShowSuccess("Uživatel byl úspěšně smazán.");
+            await LoadUsers();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private async Task OpenChangeRoleModal(string userId)
+    {
+        var user = users.Items.FirstOrDefault(u => u.Id == userId);
+        if(user is null)
+        {
+            MessageService.ShowError("Uživatel nebyl nalezen.");
+            return;
+        }
+
+        selectedUserId = user.Id;
+        selectedUserName = $"{user.FirstName} {user.LastName} ({user.Email})";
+        selectedRole = await RoleService.GetRoleByUserIdAsync(user.Id);
+
+        roleModalError = null;
+        isRoleModalBusy = false;
+        isRoleModalOpen = true;
+    }
+
+    private void CloseChangeRoleModal()
+    {
+        isRoleModalOpen = false;
+        roleModalError = null;
+        selectedUserId = null;
+        selectedRole = null;
+    }
+
+    private async Task SaveChangeRoleAsync()
+    {
+        if(string.IsNullOrWhiteSpace(selectedUserId))
+        {
+            roleModalError = "Uživatel nebyl nalezen.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedRole))
+        {
+            roleModalError = "Musíte vybrat roli.";
+            return;
+        }
+
+        try
+        {
+            isRoleModalBusy = true;
+            roleModalError = null;
+
+            await ApplicationUsersService.UpdateUserRoleAsync(selectedUserId, selectedRole);
+
+            MessageService.ShowSuccess("Role uživatele byla úspěšně změněna.");
+
+            await LoadUsers();
+
+            CloseChangeRoleModal();
+        }
+        catch(Exception ex)
+        {
+            roleModalError = ex.Message;
+        }
+        finally
+        {
+            isRoleModalBusy = false;
+        }
+    }
+
+    // TODO: Implementovat až budou Orders
+
+    private async Task RedirectToUsersOrders(string userId)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using ElectronicsEshop.Application.Exceptions;
+using ElectronicsEshop.Application.User;
 using ElectronicsEshop.Domain.Entities;
 using ElectronicsEshop.Domain.RepositoryInterfaces;
 using MediatR;
@@ -10,7 +11,8 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.DeleteUse
 public sealed class DeleteUserCommandHandler(
     ILogger<DeleteUserCommandHandler> logger,
     UserManager<ApplicationUser> userManager,
-    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteUserCommand>
+    ICartItemRepository cartItemRepository,
+    IUserContext userContext) : IRequestHandler<DeleteUserCommand>
 {
     public async Task Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
@@ -24,6 +26,14 @@ public sealed class DeleteUserCommandHandler(
         {
             logger.LogWarning("Uživatel s Id {UserId} nebyl nalezen, nelze jej deaktivovat.", request.Id);
             throw new NotFoundException(nameof(ApplicationUser), request.Id);
+        }
+
+        var currentUser = userContext.GetCurrentUser();
+
+        if(currentUser?.Id == user.Id)
+        {
+            logger.LogWarning("Uživatel s Id {UserId} se pokusil deaktivovat sám sebe - neplatná operace.", request.Id);
+            throw new ForbiddenException("Aktuální uživatel nemůže smazat sám sebe.");
         }
 
         if (!user.Active)

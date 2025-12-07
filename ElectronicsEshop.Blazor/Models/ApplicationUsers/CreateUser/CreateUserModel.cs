@@ -6,12 +6,17 @@ namespace ElectronicsEshop.Blazor.Models.ApplicationUsers.CreateUser;
 public sealed class CreateUserModel
 {
     [Required(ErrorMessage = "Jméno je povinný údaj.")]
-    [MaxLength(100, ErrorMessage = "Maximální délka jména je 100 znaků.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Délka jména musí být mezi 2 a 100 znaky.")]
     public string FirstName { get; set; } = default!;
 
     [Required(ErrorMessage = "Příjmení je povinný údaj.")]
-    [MaxLength(100, ErrorMessage = "Maximální délka příjmení je 100 znaků.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Délka příjmení musí být mezi 2 a 100 znaky.")]
     public string LastName { get; set; } = default!;
+
+    [Required(ErrorMessage = "Telefonní číslo je povinný údaj.")]
+    [MaxLength(20, ErrorMessage = "Maximální délka telefonního čísla je 20 znaků.")]
+    [RegularExpression(@"^[0-9+\s]*$", ErrorMessage = "Telefonní číslo může obsahovat pouze číslice, mezery a znak +.")]
+    public string PhoneNumber { get; set; } = default!;
 
     [Required(ErrorMessage = "Email je povinný údaj.")]
     [EmailAddress(ErrorMessage = "Zadejte platnou emailovou adresu.")]
@@ -32,5 +37,5 @@ public sealed class CreateUserModel
     public DateOnly DateOfBirth { get; set; }
 
     [Required(ErrorMessage = "Adresa je povinný údaj.")]
-    public AddressModel Address { get; set; } = default!;
+    public AddressModel Address { get; set; } = new();
 }

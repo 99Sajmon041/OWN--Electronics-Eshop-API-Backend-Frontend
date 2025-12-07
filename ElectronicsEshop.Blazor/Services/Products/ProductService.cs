@@ -30,7 +30,7 @@ public sealed class ProductService(HttpClient httpClient) : IProductService
         if(!response.IsSuccessStatusCode)
         {
             var message = await response.ReadProblemMessageAsync("Nepodařilo se načíst produkty.");
-            throw new KeyNotFoundException(message);
+            throw new ApplicationException(message);
         }
 
         var data = await response.Content.ReadFromJsonAsync<PagedResult<ProductModel>>(ct);
@@ -51,7 +51,7 @@ public sealed class ProductService(HttpClient httpClient) : IProductService
         if(!response.IsSuccessStatusCode)
         {
             var message = await response.ReadProblemMessageAsync("Nepodařilo se načíst produkt.");
-            throw new KeyNotFoundException(message);
+            throw new ApplicationException(message);
         }
 
         var data = await response.Content.ReadFromJsonAsync<ProductModel>(ct);

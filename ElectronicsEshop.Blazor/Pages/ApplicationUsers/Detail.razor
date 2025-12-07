@@ -1,10 +1,12 @@
-﻿@page "/admin/users/detail/{Id:string}"
+﻿@page "/admin/users/detail/{Id}"
 
 @attribute [Authorize(Roles = nameof(UserRoles.Admin))]
 
 @inject NavigationManager Nav
 @inject MessageService MessageService
 @inject IApplicationUsersService ApplicationUsersService
+@inject IJSRuntime JS
+@inject IRolesService RolesService
 
 @if (isLoading)
 {
@@ -12,59 +14,97 @@
 }
 else
 {
-    <h3>Detail uživatele: @model.FirstName @model.LastName</h3>
+    <div style="max-width: 700px; margin: 0 auto;" class="mb-3 text-center">
+        <h3 class="mb-0">Detail uživatele: @model.FirstName @model.LastName</h3>
+    </div>
 
-    <button class="btn btn-secondary mb-3" @onclick="BackToList">
-        Zpět na seznam
-    </button>
+    <div class="card shadow-sm border-0" style="max-width: 700px; margin: 0 auto;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <button class="btn btn-secondary btn-sm" @onclick="BackToList">
+                Zpět na seznam
+            </button>
 
-    <dl class="row">
+            <button class="btn btn-danger btn-sm" @onclick="OnDeleteAsync">
+                Odstranit uživatele
+            </button>
+        </div>
 
-        <dt class="col-sm-3">Jméno</dt>
-        <dd class="col-sm-9">@model.FirstName</dd>
+        <div class="card-body">
 
-        <dt class="col-sm-3">Příjmení</dt>
-        <dd class="col-sm-9">@model.LastName</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Role</div>
+                <div class="col-7">
+                    <span class="badge bg-info text-dark">
+                        @userRole
+                    </span>
+                </div>
+            </div>
 
-        <dt class="col-sm-3">Email</dt>
-        <dd class="col-sm-9">@model.Email</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Jméno</div>
+                <div class="col-7">@model.FirstName</div>
+            </div>
 
-        <dt class="col-sm-3">Aktivní</dt>
-        <dd class="col-sm-9">
-            @if (model.Active)
-            {
-                <span class="badge bg-success">Ano</span>
-            }
-            else
-            {
-                <span class="badge bg-danger">Ne</span>
-            }
-        </dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Příjmení</div>
+                <div class="col-7">@model.LastName</div>
+            </div>
 
-        <dt class="col-sm-3">Datum narození</dt>
-        <dd class="col-sm-9">@model.DateOfBirth.ToString("dd.MM.yyyy")</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Telefonní číslo</div>
+                <div class="col-7">@model.PhoneNumber</div>
+            </div>
 
-        <dt class="col-sm-3">Ulice</dt>
-        <dd class="col-sm-9">@model.Address.Street</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Email</div>
+                <div class="col-7">@model.Email</div>
+            </div>
 
-        <dt class="col-sm-3">Číslo domu</dt>
-        <dd class="col-sm-9">@model.Address.NumberOfHouse</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Aktivní</div>
+                <div class="col-7">
+                    @if (model.Active)
+                    {
+                        <span class="badge bg-success">Ano</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Ne</span>
+                    }
+                </div>
+            </div>
 
-        <dt class="col-sm-3">PSČ</dt>
-        <dd class="col-sm-9">@model.Address.PostalCode</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Datum narození</div>
+                <div class="col-7">@model.DateOfBirth.ToString("dd.MM.yyyy")</div>
+            </div>
 
-        <dt class="col-sm-3">Město</dt>
-        <dd class="col-sm-9">@model.Address.Town</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Ulice</div>
+                <div class="col-7">@model.Address.Street</div>
+            </div>
 
-        <dt class="col-sm-3">Počet objednávek</dt>
-        <dd class="col-sm-9">@model.OrdersCount</dd>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Číslo domu</div>
+                <div class="col-7">@model.Address.NumberOfHouse</div>
+            </div>
 
-    </dl>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">PSČ</div>
+                <div class="col-7">@model.Address.PostalCode</div>
+            </div>
 
-    <div class="mt-4">
-        <button class="btn btn-danger" @onclick="OnDeleteAsync">
-            Odstranit uživatele
-        </button>
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Město</div>
+                <div class="col-7">@model.Address.Town</div>
+            </div>
+
+            <div class="row detail-row py-2">
+                <div class="col-5 fw-bold">Počet objednávek</div>
+                <div class="col-7">@model.OrdersCount</div>
+            </div>
+
+        </div>
     </div>
 }
 
@@ -75,10 +115,12 @@ else
 
     ApplicationUserModel model = new();
     private bool isLoading = true;
+    private string userRole = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserAsync();
+        await GetUserRoleAsync(Id);
     }
 
     private async Task LoadUserAsync()
@@ -96,11 +138,30 @@ else
         }
     }
 
-    private async Task OnDeleteAsync()
+    private async Task GetUserRoleAsync(string userId)
     {
         try
         {
+            userRole = await RolesService.GetRoleByUserIdAsync(userId);
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToList();
+        }
+    }
+
+    private async Task OnDeleteAsync()
+    {
+        if (!await JS.ConfirmAction($"Opravdu chcete odstranit uživatele: {model.FirstName} {model.LastName} ?"))
+        {
+            return;
+        }
+
+        try
+        {
             await ApplicationUsersService.DeleteAsync(Id);
+            MessageService.ShowSuccess("Uživatel byl úspěšně smazán.");
             BackToList();
         }
         catch (Exception ex)
@@ -111,6 +172,6 @@ else
 
     private void BackToList()
     {
-        Nav.NavigateTo("admin/users");
+        Nav.NavigateTo("/admin/users");
     }
 }

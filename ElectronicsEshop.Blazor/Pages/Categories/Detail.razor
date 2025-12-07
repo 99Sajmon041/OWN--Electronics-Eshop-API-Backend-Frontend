@@ -25,21 +25,30 @@ else if(model is null)
 }
 else
 {
-    <div class="card">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">ID</dt>
-                <dd class="col-sm-9">@model.Id</dd>
+    <div style="max-width: 600px; margin: 0 auto;" class="mb-3 text-center">
+        <h3 class="mb-0">Detail kategorie @model.Name</h3>
+    </div>
 
-                <dt class="col-sm-3">Název kategorie</dt>
-                <dd class="col-sm-9">@model.Name</dd>
-            </dl>
+    <div class="card shadow-sm border-0" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-body p-0">
+
+            <div class="row detail-row py-2 px-3">
+                <div class="col-5 fw-bold">ID</div>
+                <div class="col-7">@model.Id</div>
+            </div>
+
+            <div class="row detail-row py-2 px-3">
+                <div class="col-5 fw-bold">Název kategorie</div>
+                <div class="col-7">@model.Name</div>
+            </div>
+
         </div>
-        <div class="card-footer d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary"  @onclick="BackToList">
+
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <button class="btn btn-secondary btn-sm" @onclick="BackToList">
                 Zpět na seznam
             </button>
-            <button class="btn btn-primary" @onclick="OnEdit">
+            <button class="btn btn-primary btn-sm" @onclick="OnEdit">
                 Upravit kategorii
             </button>
         </div>
@@ -50,7 +59,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private CategoryModel? model;
+    private CategoryModel model = new();
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()

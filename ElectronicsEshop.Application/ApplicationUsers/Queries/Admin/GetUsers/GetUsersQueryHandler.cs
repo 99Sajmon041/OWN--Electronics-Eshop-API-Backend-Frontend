@@ -18,6 +18,14 @@ public sealed class GetUsersQueryHandler(UserManager<ApplicationUser> userManage
     {
         var query = userManager.Users.AsNoTracking();
 
+        if(!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var usersInRole = await userManager.GetUsersInRoleAsync(request.Role);
+            var ids = usersInRole.Select(u => u.Id).ToList();
+
+            query = query.Where(u => ids.Contains(u.Id));
+        }
+
         query = request.Order == SortOrder.Desc
             ? query.OrderByDescending(u => u.LastName)
             : query.OrderBy(u => u.LastName);

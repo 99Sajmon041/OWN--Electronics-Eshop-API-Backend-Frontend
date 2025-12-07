@@ -4,6 +4,7 @@ using ElectronicsEshop.Blazor.Services.ApplicationUsers;
 using ElectronicsEshop.Blazor.Services.Auth;
 using ElectronicsEshop.Blazor.Services.Categories;
 using ElectronicsEshop.Blazor.Services.Products;
+using ElectronicsEshop.Blazor.Services.Roles;
 using ElectronicsEshop.Blazor.UI.Message;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -21,6 +22,7 @@ builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
+builder.Services.AddScoped<IRolesService, RolesService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

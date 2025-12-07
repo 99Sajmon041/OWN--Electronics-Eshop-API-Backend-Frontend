@@ -22,12 +22,14 @@ namespace ElectronicsEshop.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<ApplicationUserDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        public async Task<ActionResult<PagedResult<ApplicationUserDto>>> GetAll(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default, [FromQuery] string? role = null)
         {
             var result = await mediator.Send(new GetUsersQuery
             {
                 Page = page,
                 PageSize = pageSize,
+                Role = role
             }, ct);
 
             return Ok(result);

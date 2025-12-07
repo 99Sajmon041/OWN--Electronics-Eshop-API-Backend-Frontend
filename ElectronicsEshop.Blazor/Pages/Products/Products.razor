@@ -26,14 +26,14 @@
                 <label class="form-label">Hledat</label>
                 <input class="form-control"
                        placeholder="Hledat produkt..."
-                       value="@model.Q"
+                       value="@request.Q"
                        @oninput="OnSearchChanged"
                        @onkeydown="OnFilterKeyDown" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">Kategorie</label>
-                <select class="form-select" value="@(model.CategoryId?.ToString() ?? "")" @onchange="OnSelectedCategoryAsync">
+                <select class="form-select" value="@(request.CategoryId?.ToString() ?? "")" @onchange="OnSelectedCategoryAsync">
                     <option value="">Vše</option>
                     @foreach(var kpv in categories)
                     {
@@ -45,7 +45,7 @@
             <div class="col-md-2">
                 <label class="form-label">Aktivita</label>
                 <select class="form-select"
-                        value="@(model.IsActive?.ToString().ToLower() ?? "")"
+                        value="@(request.IsActive?.ToString().ToLower() ?? "")"
                         @onchange="OnIsActiveChanged">
                     <option value="">Vše</option>
                     <option value="true">Pouze aktivní</option>
@@ -56,7 +56,7 @@
             <div class="col-md-2">
                 <label class="form-label">Řadit dle</label>
                 <select class="form-select"
-                        value="@model.Sort"
+                        value="@request.Sort"
                         @onchange="OnSortChanged">
                     <option value="name">Název</option>
                     <option value="price">Cena</option>
@@ -68,7 +68,7 @@
             <div class="col-md-2">
                 <label class="form-label">Směr řazení</label>
                 <select class="form-select"
-                        value="@model.Order"
+                        value="@request.Order"
                         @onchange="OnOrderChanged">
                     <option value="@SortOrder.Asc">Vzestupně</option>
                     <option value="@SortOrder.Desc">Sestupně</option>
@@ -77,7 +77,7 @@
 
             <div class="col-md-2">
                 <label class="form-label">Na stránku</label>
-                <select class="form-select" value="@model.PageSize" @onchange="OnPageSizeChanged">
+                <select class="form-select" value="@request.PageSize" @onchange="OnPageSizeChanged">
                     <option value="10">10</option>
                     <option value="20">20</option>
                     <option value="50">50</option>
@@ -199,7 +199,7 @@ else
                                 Detail
                             </button>
 
-                            <button class="btn btn-sm btn-primary btn-action me-1"
+                            <button class="btn btn-sm btn-warning btn-action me-1"
                                     @onclick="() => RedirectToUpdate(product.Id)">
                                 Upravit
                             </button>
@@ -264,7 +264,7 @@ else
 
 
 @code {
-    private ProductAdminRequest model = new();
+    private ProductAdminRequest request = new();
     private PagedResult<ProductModel>? products;
     private IDictionary<int, string> categories = new Dictionary<int, string>();
     private bool isLoading;
@@ -306,7 +306,7 @@ else
         try
         {
             isLoading = true;
-            products = await ProductAdminService.GetAllAsync(model);
+            products = await ProductAdminService.GetAllAsync(request);
         }
         catch (Exception ex)
         {
@@ -323,7 +323,7 @@ else
         if (!canGoPrevious)
             return;
 
-        model.Page--;
+        request.Page--;
         await LoadProductsAsync();
     }
 
@@ -332,7 +332,7 @@ else
         if (!canGoNext)
             return;
 
-        model.Page++;
+        request.Page++;
         await LoadProductsAsync();
     }
 
@@ -347,25 +347,25 @@ else
 
         if(string.IsNullOrEmpty(raw))
         {
-            model.CategoryId = null;
+            request.CategoryId = null;
         }
         else if(int.TryParse(raw, out var categoryId))
         {
-            model.CategoryId = categoryId;
+            request.CategoryId = categoryId;
         }
         else
         {
             return;
         }
 
-        model.Page = 1;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
     private async Task OnSearchChanged(ChangeEventArgs e)
     {
-        model.Q = e.Value?.ToString() ?? string.Empty;
-        model.Page = 1;
+        request.Q = e.Value?.ToString() ?? string.Empty;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
@@ -373,8 +373,8 @@ else
     {
         if(e.Key == "Escape")
         {
-            model.Q = string.Empty;
-            model.Page = 1;
+            request.Q = string.Empty;
+            request.Page = 1;
             await LoadProductsAsync();
         }
     }
@@ -383,21 +383,21 @@ else
     {
         var value = e.Value?.ToString();
 
-        model.IsActive = value switch
+        request.IsActive = value switch
         {
             "true" => true,
             "false" => false,
             _ => null
         };
 
-        model.Page = 1;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
     private async Task OnSortChanged(ChangeEventArgs e)
     {
-        model.Sort = e.Value?.ToString() ?? "name";
-        model.Page = 1;
+        request.Sort = e.Value?.ToString() ?? "name";
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
@@ -410,8 +410,8 @@ else
             order = SortOrder.Asc;
         }
 
-        model.Order = order;
-        model.Page = 1;
+        request.Order = order;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
@@ -419,14 +419,14 @@ else
     {
         if(int.TryParse(e.Value?.ToString(), out var pageSize) && pageSize > 0)
         {
-            model.PageSize = pageSize;
+            request.PageSize = pageSize;
         }
         else
         {
-            model.PageSize = 10;
+            request.PageSize = 10;
         }
 
-        model.Page = 1;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 

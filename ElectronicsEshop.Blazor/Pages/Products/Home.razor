@@ -110,14 +110,14 @@
                             </p>
 
                             <div class="mt-auto d-flex justify-content-between">
-                                <button class="btn btn-outline-primary btn-sm"
+                                <button class="btn btn-primary btn-sm"
                                         @onclick="@(() => GoToDetail(product.Id))">
                                     Detail
                                 </button>
 
                                 <AuthorizeView>
                                     <Authorized>
-                                        <button class="btn btn-primary btn-sm"
+                                        <button class="btn btn-warning btn-sm"
                                                 @onclick="@(() => AddToCartAsync(product.Id))">
                                             Přidat do košíku
                                         </button>

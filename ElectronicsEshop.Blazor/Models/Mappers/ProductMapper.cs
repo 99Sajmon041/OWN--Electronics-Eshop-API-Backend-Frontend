@@ -7,10 +7,7 @@ public static class ProductMapper
 {
     public static UpdateProductModel ToUpdatemodel(this ProductModel source)
     {
-        if(source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return new UpdateProductModel
         {
