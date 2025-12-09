@@ -11,7 +11,15 @@
 <PageTitle>Seznam produktů</PageTitle>
 
 <div class="container mt-4">
-    <h2 class="mb-3">Katalog produktů</h2>
+    <h2 class="mb-3 d-flex align-items-center gap-2">
+        Katalog produktů
+
+        @if (isLoading)
+        {
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+            <span class="text-muted small">Načítám…</span>
+        }
+    </h2>
 
     <ul class="nav nav-pills mb-3">
         <li class="nav-item">
@@ -26,7 +34,7 @@
             <li class="nav-item">
                 <button class="@GetCategoryTabClass(kvp.Key)"
                         @onclick="() => OnCategorySelectedAsync(kvp.Key)">
-                    @kvp.Value  
+                    @kvp.Value
                 </button>
             </li>
         }
@@ -34,24 +42,25 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            <input class="form-control" placeholder="Hledat produkt..." value="@filter.Q" @oninput="OnSearchCahnged" @onkeydown="OnCanceledFiltering"/>
+            <input class="form-control"
+                   placeholder="Hledat produkt..."
+                   value="@filter.Q"
+                   @oninput="OnSearchCahnged"
+                   @onkeydown="OnCanceledFiltering" />
         </div>
     </div>
 
-    @if (isLoading)
-    {
-        <p>Načítám produkty...</p>
-    }
-    else if (products is null || !products.Items.Any())
+
+    @if (!isLoading && (products is null || !products.Items.Any()))
     {
         <div class="alert alert-info">
             Pro zvolený filtr nebyly nalezeny žádné produkty.
         </div>
     }
-    else
+    else if (!isLoading)
     {
         <div class="row g-3">
-            @foreach (var product in products.Items)
+            @foreach (var product in products!.Items)
             {
                 <div class="col-12 col-sm-6 col-md-4">
                     <div class="card h-100">
@@ -130,7 +139,6 @@
             }
         </div>
 
-
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
 
@@ -159,8 +167,7 @@
     }
 </div>
 
-@code
-{
+@code {
     private ProductRequest filter = new();
 
     private IDictionary<int, string> categories = new Dictionary<int, string>();
@@ -221,9 +228,7 @@
     private int GetTotalPages()
     {
         if (products is null || products.PageSize <= 0)
-        {
             return 1;
-        }
 
         return (int)Math.Ceiling((double)products.TotalCount / products.PageSize);
     }
@@ -266,7 +271,7 @@
 
     private async Task AddToCartAsync(int productId)
     {
-        // TODO: napoj na CartService / API (POST /api/cart/items)
+        // TODO
         await Task.CompletedTask;
     }
 }

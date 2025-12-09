@@ -59,13 +59,14 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             query = query.Where(o => o.OrderStatus == status.Value);
 
         if (!string.IsNullOrWhiteSpace(customerEmail))
-            query = query.Where(o => o.ApplicationUser.Email == customerEmail);
+            query = query.Where(o => o.ApplicationUser.Email!.Contains(customerEmail));
 
         var ordersCount = await query.CountAsync(ct);
 
         var orders = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(ct);
 
         return (orders, ordersCount);

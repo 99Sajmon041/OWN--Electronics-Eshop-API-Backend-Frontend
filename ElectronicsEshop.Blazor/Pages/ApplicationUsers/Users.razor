@@ -30,6 +30,17 @@
                 </select>
             </div>
 
+            <div class="col-md-2">
+                <label class="form-label">Zobrazit uživatele v roli</label>
+                <select class="form-select" value="@selectedRoleFilter" @onchange="OnRoleChanged">
+                    <option value="">Všechny role</option>
+                    @foreach (var role in availableRoles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+            </div>
+
         </div>
     </div>
 </div>
@@ -41,6 +52,7 @@
         <p>Načítám uživatele...</p>
     </div>
 }
+
 else
 {
 
@@ -185,6 +197,7 @@ else
     private string selectedUserName = string.Empty;
     private string? selectedRole;
     private IEnumerable<string> availableRoles = [];
+    private string? selectedRoleFilter;
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,6 +206,8 @@ else
         currentUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         availableRoles = await RoleService.GetUserRolesAsync();
+
+        selectedRoleFilter = request.Role ?? string.Empty;
 
         await LoadUsers();
     }
@@ -364,6 +379,29 @@ else
         {
             isRoleModalBusy = false;
         }
+    }
+
+    private async Task OnRoleChanged(ChangeEventArgs e)
+    {
+        var role = e.Value?.ToString();
+        selectedRoleFilter = role;
+
+        if(string.IsNullOrWhiteSpace(role))
+        {
+            request.Role = null;
+            request.Page = 1;
+            await LoadUsers();
+            return;
+        }
+
+        if (!availableRoles.Contains(role))
+        {
+            return;
+        }
+
+        request.Role = role;
+        request.Page = 1;
+        await LoadUsers();
     }
 
     // TODO: Implementovat až budou Orders

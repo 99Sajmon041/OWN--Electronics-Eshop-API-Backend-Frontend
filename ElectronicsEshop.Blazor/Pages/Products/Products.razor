@@ -10,13 +10,16 @@
 @inject HttpClient Http
 @inject IJSRuntime JS
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Správa produktů</h3>
 
-    <button class="btn btn-primary" @onclick="OnCreateProduct">
-        Přidat produkt
-    </button>
-</div>
+<h3 class="d-flex align-items-center gap-2">
+    Správa produktů
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span class="text-muted small">Načítám...</span>
+    }
+</h3>
+
 
 <div class="card mb-3">
     <div class="card-body">
@@ -35,7 +38,7 @@
                 <label class="form-label">Kategorie</label>
                 <select class="form-select" value="@(request.CategoryId?.ToString() ?? "")" @onchange="OnSelectedCategoryAsync">
                     <option value="">Vše</option>
-                    @foreach(var kpv in categories)
+                    @foreach (var kpv in categories)
                     {
                         <option value="@kpv.Key">@kpv.Value</option>
                     }
@@ -95,7 +98,7 @@
         Načítám produkty...
     </div>
 }
-else if (products is null || products.Items.Count == 0)
+else if (model is null || model.Items.Count == 0)
 {
     <div class="alert alert-info">
         Nejsou k dispozici žádné produkty.
@@ -105,8 +108,8 @@ else
 {
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
-            Stránka @products.Page / @totalPages,
-            celkem @products.TotalCount položek
+            Stránka @model.Page / @totalPages,
+            celkem @model.TotalCount položek
         </div>
         <div class="btn-group">
             <button class="btn btn-outline-secondary"
@@ -140,7 +143,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in products.Items)
+            @foreach (var product in model.Items)
             {
                 <tr>
                     <td>@product.Id</td>
@@ -265,7 +268,7 @@ else
 
 @code {
     private ProductAdminRequest request = new();
-    private PagedResult<ProductModel>? products;
+    private PagedResult<ProductModel>? model;
     private IDictionary<int, string> categories = new Dictionary<int, string>();
     private bool isLoading;
 
@@ -288,12 +291,12 @@ else
     private string? imageModalError;
 
 
-    private int totalPages => products is null || products.PageSize == 0
+    private int totalPages => model is null || model.PageSize == 0
             ? 0
-            : (int)Math.Ceiling((double)products.TotalCount / products.PageSize);
+            : (int)Math.Ceiling((double)model.TotalCount / model.PageSize);
 
-    private bool canGoPrevious => products is not null && products.Page > 1;
-    private bool canGoNext => products is not null && products.Page < totalPages;
+    private bool canGoPrevious => model is not null && model.Page > 1;
+    private bool canGoNext => model is not null && model.Page < totalPages;
 
     protected override async Task OnInitializedAsync()
     {
@@ -306,7 +309,7 @@ else
         try
         {
             isLoading = true;
-            products = await ProductAdminService.GetAllAsync(request);
+            model = await ProductAdminService.GetAllAsync(request);
         }
         catch (Exception ex)
         {
@@ -345,11 +348,11 @@ else
     {
         var raw = e.Value?.ToString();
 
-        if(string.IsNullOrEmpty(raw))
+        if (string.IsNullOrEmpty(raw))
         {
             request.CategoryId = null;
         }
-        else if(int.TryParse(raw, out var categoryId))
+        else if (int.TryParse(raw, out var categoryId))
         {
             request.CategoryId = categoryId;
         }
@@ -371,7 +374,7 @@ else
 
     private async Task OnFilterKeyDown(KeyboardEventArgs e)
     {
-        if(e.Key == "Escape")
+        if (e.Key == "Escape")
         {
             request.Q = string.Empty;
             request.Page = 1;
@@ -405,7 +408,7 @@ else
     {
         var value = e.Value?.ToString();
 
-        if(!Enum.TryParse<SortOrder>(value, ignoreCase: true, out var order))
+        if (!Enum.TryParse<SortOrder>(value, ignoreCase: true, out var order))
         {
             order = SortOrder.Asc;
         }
@@ -417,7 +420,7 @@ else
 
     private async Task OnPageSizeChanged(ChangeEventArgs e)
     {
-        if(int.TryParse(e.Value?.ToString(), out var pageSize) && pageSize > 0)
+        if (int.TryParse(e.Value?.ToString(), out var pageSize) && pageSize > 0)
         {
             request.PageSize = pageSize;
         }
@@ -468,7 +471,7 @@ else
             MessageService.ShowSuccess($"Úprava množstí skladem proběhla úspěšně. Je přidáno: {newStockQty} kusů.");
             await LoadProductsAsync();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             stockModalError = ex.Message;
         }
@@ -616,7 +619,7 @@ else
 
     private async Task DeleteAsync(int productId)
     {
-        if(!await JS.ConfirmAction($"Opravdu si přejete vymazat produkt s ID: {productId} ?"))
+        if (!await JS.ConfirmAction($"Opravdu si přejete vymazat produkt s ID: {productId} ?"))
         {
             return;
         }
@@ -628,7 +631,7 @@ else
             MessageService.ShowSuccess($"Produkt s ID: {productId} byl odstraněn.");
             await LoadProductsAsync();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             MessageService.ShowError(ex.Message);
         }

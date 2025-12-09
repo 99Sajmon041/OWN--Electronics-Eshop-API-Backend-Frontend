@@ -1,0 +1,55 @@
+﻿using ElectronicsEshop.Blazor.Models.Common;
+using ElectronicsEshop.Blazor.Models.Orders.GetAdminOrders;
+using ElectronicsEshop.Blazor.Utils;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Net.Http.Json;
+
+namespace ElectronicsEshop.Blazor.Services.Orders;
+
+public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminService
+{
+    public async  Task<PagedResult<OrderAdminListItemModel>> GetAllAsync(OrdersAdminRequest request, CancellationToken ct = default)
+    {
+        var query = new Dictionary<string, string?>
+        {
+            ["page"] = request.Page.ToString(),
+            ["pageSize"] = request.PageSize.ToString(),
+            ["from"] = request.From?.ToString("yyyy-MM-dd"),
+            ["to"] = request.To?.ToString("yyyy-MM-dd"),
+            ["orderStatus"] = request.OrderStatus?.ToString(),
+            ["customerEmail"] = request.CustomerEmail ?? "",
+            ["orderId"] = request.OrderId?.ToString(),
+        };
+
+        var filtered = query
+            .Where(kpv => !string.IsNullOrEmpty(kpv.Value))
+            .ToDictionary(kpv => kpv.Key, kpv => kpv.Value);
+
+        var url = QueryHelpers.AddQueryString("api/admin/orders", filtered);
+
+        var response = await httpClient.GetAsync(url, ct);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se načíst objednávky.");
+            throw new ApplicationException(message);
+        }
+
+
+        var data = await response.Content.ReadFromJsonAsync<PagedResult<OrderAdminListItemModel>>(ct) 
+            ?? throw new ApplicationException("Nepodařilo se načíst objednávky.");
+
+        if (!data.Items.Any())
+        {
+            return data ?? new PagedResult<OrderAdminListItemModel>
+            {
+                Items = [],
+                TotalCount = 0,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
+        }
+
+        return data;
+    }
+}

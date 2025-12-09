@@ -1,0 +1,352 @@
+﻿@page "/admin/orders"
+
+@inject MessageService MessageService
+@inject IOrderAdminService OrderService
+@inject NavigationManager Nav
+
+<h3 class="d-flex align-items-center gap-2">
+    Objednávky
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span class="text-muted small">Načítám...</span>
+    }
+</h3>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+
+            <div class="col-md-2">
+                <label class="form-label">Na stránku</label>
+                <select class="form-select form-select-sm" value="@request.PageSize" @onchange="OnPageSizeChanged">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">E-mail zákazníka</label>
+                <input class="form-control form-control-sm" value="@request.CustomerEmail" placeholder="E-mail.."
+                       @oninput="OnSearchEmailChanged" @onkeydown="OnFilterKeyDownEmail" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">ID objednávky</label>
+                <input class="form-control form-control-sm" value="@(request.OrderId?.ToString() ?? string.Empty)" placeholder="ID.."
+                       @oninput="OnSearchOrderIdChanged" @onkeydown="OnFilterKeyDownId" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Stav objednávky</label>
+                <select class="form-select form-select-sm" value="@(request.OrderStatus?.ToString() ?? "")" @onchange="OnSelectedOrderStatusAsync">
+                    <option value="">Všechny</option>
+                    @foreach (var s in statuses)
+                    {
+                        <option value="@s.Key">@s.Value</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label">Od</label>
+                <input type="date" class="form-control form-control-sm" value="@(request.From?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateFrom" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Do</label>
+                <input type="date" class="form-control form-control-sm" value="@(request.To?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateTo" />
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+        Stránka @model.Page / @totalPages,
+        celkem @model.TotalCount objednávek
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-secondary" @onclick="PreviousPageAsync" disabled="@(!canGoPrevious)">
+            Předchozí
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="NextPageAsync" disabled="@(!canGoNext)">
+            Další
+        </button>
+    </div>
+</div>
+
+@if (!model.Items.Any())
+{
+    <div class="alert alert-info">
+        Nejsou k dispozici žádné objednávky.
+    </div>
+}
+else
+{
+    <table class="table table-sm table-striped align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Vytvořeno</th>
+                <th>Zákazník</th>
+                <th>E-mail</th>
+                <th>Počet položek</th>
+                <th>Celkem</th>
+                <th>Stav</th>
+                <th>Zrušeno</th>
+                <th class="text-end">Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in model.Items)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@order.CustomerFullName</td>
+                    <td>@order.CustomerEmail</td>
+                    <td>@order.ItemsCount</td>
+                    <td>@order.TotalAmount.ToString("N2") Kč</td>
+                    <td>
+                        <span class="badge rounded-pill @GetStatusBadgeClass(order.OrderStatus)">
+                            @statuses[order.OrderStatus]
+                        </span>
+                    </td>
+                    <td>
+                        @if (order.CanceledAt.HasValue)
+                        {
+                            @order.CanceledAt.Value.ToString("dd.MM.yyyy HH:mm")
+                        }
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-primary"
+                                @onclick="() => RedirectToDetail(order.Id)">
+                            Detail
+                        </button>
+                        @* tlačítko pro změnu stavu doděláme později *@
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private PagedResult<OrderAdminListItemModel> model = new();
+    private OrdersAdminRequest request = new();
+    private Dictionary<OrderStatus, string> statuses = new();
+    private bool isLoading;
+
+    private int totalPages => model is null || model.PageSize == 0
+        ? 0
+        : (int)Math.Ceiling((double)model.TotalCount / model.PageSize);
+
+    private bool canGoPrevious => model is not null && model.Page > 1;
+    private bool canGoNext => model is not null && model.Page < totalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        statuses = StatusLabels;
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        request.To = today;
+        request.From = today.AddYears(-1);
+
+        await LoadOrdersAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        try
+        {
+            isLoading = true;
+            model = await OrderService.GetAllAsync(request);
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            Nav.NavigateTo("/");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (!canGoPrevious)
+            return;
+
+        request.Page--;
+        await LoadOrdersAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (!canGoNext)
+            return;
+
+        request.Page++;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var pageSize))
+        {
+            request.PageSize = pageSize;
+        }
+        else
+        {
+            request.PageSize = 10;
+        }
+
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnSearchEmailChanged(ChangeEventArgs e)
+    {
+        request.CustomerEmail = e.Value?.ToString() ?? string.Empty;
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnSearchOrderIdChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            request.OrderId = id;
+        }
+        else
+        {
+            request.OrderId = null;
+        }
+
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnSelectedOrderStatusAsync(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            request.OrderStatus = null;
+        }
+        else if (Enum.TryParse<OrderStatus>(value, out var status))
+        {
+            request.OrderStatus = status;
+        }
+        else
+        {
+            return;
+        }
+
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnFilterKeyDownEmail(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            request.CustomerEmail = null;
+            request.Page = 1;
+            await LoadOrdersAsync();
+        }
+    }
+
+    private async Task OnFilterKeyDownId(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            request.OrderId = null;
+            request.Page = 1;
+            await LoadOrdersAsync();
+        }
+    }
+
+    private static readonly Dictionary<OrderStatus, string> StatusLabels = new()
+    {
+        { OrderStatus.Pending, "Čeká na vyřízení" },
+        { OrderStatus.Paid, "Zaplaceno" },
+        { OrderStatus.Shipped, "Odesláno" },
+        { OrderStatus.Completed, "Dokončeno" },
+        { OrderStatus.Cancelled, "Zrušeno" }
+    };
+
+    private void RedirectToDetail(int orderId)
+    {
+        Nav.NavigateTo($"/admin/orders/{orderId}");
+    }
+
+    private async Task OnFilteredDateFrom(ChangeEventArgs e)
+    {
+        var from = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(from))
+        {
+            request.From = null;
+            request.Page = 1;
+            await LoadOrdersAsync();
+            return;
+        }
+
+        if (!DateOnly.TryParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var fromDate))
+            return;
+
+        if (request.To.HasValue && fromDate > request.To.Value)
+        {
+            MessageService.ShowError("Datum 'Od' nesmí být větší než datum 'Do'.");
+            return;
+        }
+
+        request.From = fromDate;
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private async Task OnFilteredDateTo(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            request.To = null;
+            request.Page = 1;
+            await LoadOrdersAsync();
+            return;
+        }
+
+        if (!DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var toDate))
+            return;
+
+        if (request.From.HasValue && toDate < request.From.Value)
+        {
+            MessageService.ShowError("Datum 'Do' nesmí být menší než datum 'Od'.");
+            return;
+        }
+
+        request.To = toDate;
+        request.Page = 1;
+        await LoadOrdersAsync();
+    }
+
+    private static string GetStatusBadgeClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "bg-warning text-dark",
+        OrderStatus.Paid => "bg-info text-dark",
+        OrderStatus.Shipped => "bg-primary",
+        OrderStatus.Completed => "bg-success",
+        OrderStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+}

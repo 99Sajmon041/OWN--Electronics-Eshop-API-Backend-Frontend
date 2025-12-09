@@ -3,6 +3,7 @@ using ElectronicsEshop.Blazor;
 using ElectronicsEshop.Blazor.Services.ApplicationUsers;
 using ElectronicsEshop.Blazor.Services.Auth;
 using ElectronicsEshop.Blazor.Services.Categories;
+using ElectronicsEshop.Blazor.Services.Orders;
 using ElectronicsEshop.Blazor.Services.Products;
 using ElectronicsEshop.Blazor.Services.Roles;
 using ElectronicsEshop.Blazor.UI.Message;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
+builder.Services.AddScoped<IOrderAdminService, OrderAdminService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {
