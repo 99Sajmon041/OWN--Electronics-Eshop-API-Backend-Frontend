@@ -10,17 +10,20 @@
 
 <PageTitle>Seznam produktů</PageTitle>
 
-<div class="container mt-4">
-    <h2 class="mb-3 d-flex align-items-center gap-2">
-        Katalog produktů
 
+<div class="text-center my-4">
+    <h3 class="mb-1">Katalog produktů</h3>
+
+    <div style="min-height: 24px;">
         @if (isLoading)
         {
-            <span class="spinner-border spinner-border-sm text-primary"></span>
-            <span class="text-muted small">Načítám…</span>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span class="text-muted small ms-2">Načítám...</span>
         }
-    </h2>
+    </div>
+</div>
 
+<div class="container">
     <ul class="nav nav-pills mb-3">
         <li class="nav-item">
             <button class="@GetCategoryTabClass(null)"
@@ -49,7 +52,6 @@
                    @onkeydown="OnCanceledFiltering" />
         </div>
     </div>
-
 
     @if (!isLoading && (products is null || !products.Items.Any()))
     {

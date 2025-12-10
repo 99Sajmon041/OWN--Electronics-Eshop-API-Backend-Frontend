@@ -9,13 +9,20 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Správa uživatelů</h3>
+<PageTitle>Správa uživatelů</PageTitle>
 
+<h3 class="d-flex align-items-center gap-2">
+    Správa uživatelů
     <button class="btn btn-primary" @onclick="OnCreateUser">
         Vytvořit uživatele
     </button>
-</div>
+
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span class="text-muted small">Načítám...</span>
+    }
+</h3>
 
 <div class="card mb-3">
     <div class="card-body">
@@ -46,7 +53,7 @@
 </div>
 
 
-@if(isLoading)
+@if(!model.Items.Any())
 {
     <div class="alert alert-info">
         <p>Načítám uživatele...</p>
@@ -55,11 +62,10 @@
 
 else
 {
-
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
-            Stránka @users.Page / @totalPages,
-            celkem @users.TotalCount uživatelů
+            Stránka @model.Page / @totalPages,
+            celkem @model.TotalCount uživatelů
         </div>
         <div class="btn-group">
             <button class="btn btn-outline-secondary"
@@ -94,7 +100,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var user in users.Items)
+            @foreach (var user in model.Items)
             {
                 <tr>
                     <td>@user.Id</td>
@@ -178,16 +184,16 @@ else
 
 
 @code {
-    private PagedResult<ApplicationUserModel> users = new();
+    private PagedResult<ApplicationUserModel> model = new();
     private CommonPageRequest request = new();
     private bool isLoading = true;
 
-    private int totalPages => users is null || users.TotalCount == 0
+    private int totalPages => model is null || model.TotalCount == 0
         ? 0
-        : (int)Math.Ceiling((double)users.TotalCount / users.PageSize);
+        : (int)Math.Ceiling((double)model.TotalCount / model.PageSize);
 
-    private bool canGoPrevious => users is not null && users.Page > 1;
-    private bool canGoNext => users is not null && users.Page < totalPages;
+    private bool canGoPrevious => model is not null && model.Page > 1;
+    private bool canGoNext => model is not null && model.Page < totalPages;
 
     private string? currentUserId;
     private bool isRoleModalOpen;
@@ -217,9 +223,9 @@ else
         try
         {
             isLoading = true;
-            users = await ApplicationUsersService.GetAllAsync(request);
+            model = await ApplicationUsersService.GetAllAsync(request);
 
-            if (!users.Items.Any())
+            if (!model.Items.Any())
             {
                 MessageService.ShowInfo("Žádní uživatelé nebyly nalezeni.");
             }
@@ -295,7 +301,7 @@ else
             return;
         }
 
-        var user = users.Items.FirstOrDefault(u => u.Id == userId);
+        var user = model.Items.FirstOrDefault(u => u.Id == userId);
         var fullName = user is not null ? $"{user.FirstName} {user.LastName}" : string.Empty;
 
 
@@ -320,7 +326,7 @@ else
 
     private async Task OpenChangeRoleModal(string userId)
     {
-        var user = users.Items.FirstOrDefault(u => u.Id == userId);
+        var user = model.Items.FirstOrDefault(u => u.Id == userId);
         if(user is null)
         {
             MessageService.ShowError("Uživatel nebyl nalezen.");

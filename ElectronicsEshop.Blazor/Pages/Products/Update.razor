@@ -1,12 +1,15 @@
 ﻿@page "/admin/products/update/{Id:int}"
 @using ElectronicsEshop.Blazor.Models.Products.Shared
-@attribute [Authorize]
+
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
 
 @inject IProductAdminService productAdminService
 @inject NavigationManager Nav
 @inject MessageService MessageService
 @inject ICategoryService CategoryService
 @inject HttpClient Http
+
+<PageTitle>Úprava produktu</PageTitle>
 
 @if (!canRender)
 {

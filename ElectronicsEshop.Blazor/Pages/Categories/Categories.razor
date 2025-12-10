@@ -1,22 +1,25 @@
 ﻿@page "/admin/categories"
 @attribute [Authorize(Roles = nameof(UserRoles.Admin))]
 
-@using ElectronicsEshop.Blazor.Models.Categories
-@using ElectronicsEshop.Blazor.Models.Common
-@using Microsoft.AspNetCore.Components.Web
-
 @inject ICategoryService CategoryService
 @inject MessageService MessageService
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Správa kategorií</h3>
+<PageTitle>Správa kategorií</PageTitle>
 
+<h3 class="d-flex align-items-center gap-2">
+    Správa kategorií
     <button class="btn btn-primary" @onclick="OnCreateCategory">
         Přidat kategorii
     </button>
-</div>
+
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span class="text-muted small">Načítám...</span>
+    }
+</h3>
 
 <div class="card mb-3">
     <div class="card-body">
@@ -37,13 +40,7 @@
     </div>
 </div>
 
-@if (isLoading)
-{
-    <div class="alert alert-info">
-        Načítám kategorie...
-    </div>
-}
-else if (categories is null || categories.Items.Count == 0)
+@if (categories is null || !categories.Items.Any())
 {
     <div class="alert alert-info">
         Nejsou k dispozici žádné kategorie.

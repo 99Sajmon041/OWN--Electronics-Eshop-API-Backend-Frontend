@@ -1,8 +1,12 @@
 ﻿@page "/admin/orders"
 
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
 @inject MessageService MessageService
 @inject IOrderAdminService OrderService
 @inject NavigationManager Nav
+
+<PageTitle>Správa objednávek</PageTitle>
 
 <h3 class="d-flex align-items-center gap-2">
     Objednávky
@@ -34,13 +38,15 @@
 
             <div class="col-md-2">
                 <label class="form-label">ID objednávky</label>
-                <input class="form-control form-control-sm" value="@(request.OrderId?.ToString() ?? string.Empty)" placeholder="ID.."
-                       @oninput="OnSearchOrderIdChanged" @onkeydown="OnFilterKeyDownId" />
+                <input type="number" min="1" step="1" class="form-control form-control-sm" value="@(request.OrderId?.ToString() ?? string.Empty)"
+                       placeholder="ID.." @oninput="OnSearchOrderIdChanged" @onkeydown="OnFilterKeyDownId" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">Stav objednávky</label>
-                <select class="form-select form-select-sm" value="@(request.OrderStatus?.ToString() ?? "")" @onchange="OnSelectedOrderStatusAsync">
+                <select class="form-select form-select-sm"
+                        value="@(request.OrderStatus?.ToString() ?? "")"
+                        @onchange="OnSelectedOrderStatusAsync">
                     <option value="">Všechny</option>
                     @foreach (var s in statuses)
                     {
@@ -51,12 +57,18 @@
 
             <div class="col-md-1">
                 <label class="form-label">Od</label>
-                <input type="date" class="form-control form-control-sm" value="@(request.From?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateFrom" />
+                <input type="date"
+                       class="form-control form-control-sm"
+                       value="@(request.From?.ToString("yyyy-MM-dd"))"
+                       @onchange="OnFilteredDateFrom" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">Do</label>
-                <input type="date" class="form-control form-control-sm" value="@(request.To?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateTo" />
+                <input type="date"
+                       class="form-control form-control-sm"
+                       value="@(request.To?.ToString("yyyy-MM-dd"))"
+                       @onchange="OnFilteredDateTo" />
             </div>
 
         </div>
@@ -111,7 +123,7 @@ else
                     <td>@order.ItemsCount</td>
                     <td>@order.TotalAmount.ToString("N2") Kč</td>
                     <td>
-                        <span class="badge rounded-pill @GetStatusBadgeClass(order.OrderStatus)">
+                        <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(order.OrderStatus)">
                             @statuses[order.OrderStatus]
                         </span>
                     </td>
@@ -122,11 +134,14 @@ else
                         }
                     </td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-primary"
+                        <button class="btn btn-sm btn-primary me-1"
                                 @onclick="() => RedirectToDetail(order.Id)">
                             Detail
                         </button>
-                        @* tlačítko pro změnu stavu doděláme později *@
+                        <button class="btn btn-sm btn-outline-secondary"
+                                @onclick="() => OpenOrderStatusModal(order.Id, order.OrderStatus)">
+                            Změnit stav
+                        </button>
                     </td>
                 </tr>
             }
@@ -134,11 +149,39 @@ else
     </table>
 }
 
+<ModalDialog IsOpen="isOrderStatusOpen"
+             Title="Upravit stav objednávky"
+             ErrorMessage="@orderStatusModalError"
+             IsBusy="isOrderStatusSaving"
+             CancelText="Zavřít"
+             SaveText="Uložit změny"
+             OnCancel="CloseOrderStatusModal"
+             OnSave="UpdateOrderStatusAsync">
+
+    <div class="mb-3">
+        <label class="form-label">Nový stav objednávky</label>
+        <select class="form-select form-select-sm" value="@(newOrderStatus?.ToString() ?? "")" @onchange="HandleOrderStatusChange">
+            <option value="">-- Vyberte stav --</option>
+            @foreach (var s in statuses)
+            {
+                <option value="@s.Key">@s.Value</option>
+            }
+        </select>
+    </div>
+</ModalDialog>
+
+
 @code {
     private PagedResult<OrderAdminListItemModel> model = new();
     private OrdersAdminRequest request = new();
     private Dictionary<OrderStatus, string> statuses = new();
     private bool isLoading;
+
+    private bool isOrderStatusOpen;
+    private bool isOrderStatusSaving;
+    private int? selectedOrderIdForOrderStatus;
+    private OrderStatus? newOrderStatus;
+    private string? orderStatusModalError;
 
     private int totalPages => model is null || model.PageSize == 0
         ? 0
@@ -149,7 +192,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        statuses = StatusLabels;
+        statuses = OrderStatusHelper.StatusLabels();
 
         var today = DateOnly.FromDateTime(DateTime.Today);
         request.To = today;
@@ -218,17 +261,23 @@ else
 
     private async Task OnSearchOrderIdChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out var id))
-        {
-            request.OrderId = id;
-        }
-        else
+        var value = e.Value?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(value))
         {
             request.OrderId = null;
+            request.Page = 1;
+            await LoadOrdersAsync();
+            return;
         }
 
-        request.Page = 1;
-        await LoadOrdersAsync();
+        if (int.TryParse(value, out var id) && id > 0)
+        {
+            request.OrderId = id;
+            request.Page = 1;
+            await LoadOrdersAsync();
+            return;
+        }
     }
 
     private async Task OnSelectedOrderStatusAsync(ChangeEventArgs e)
@@ -271,15 +320,6 @@ else
             await LoadOrdersAsync();
         }
     }
-
-    private static readonly Dictionary<OrderStatus, string> StatusLabels = new()
-    {
-        { OrderStatus.Pending, "Čeká na vyřízení" },
-        { OrderStatus.Paid, "Zaplaceno" },
-        { OrderStatus.Shipped, "Odesláno" },
-        { OrderStatus.Completed, "Dokončeno" },
-        { OrderStatus.Cancelled, "Zrušeno" }
-    };
 
     private void RedirectToDetail(int orderId)
     {
@@ -340,13 +380,77 @@ else
         await LoadOrdersAsync();
     }
 
-    private static string GetStatusBadgeClass(OrderStatus status) => status switch
+    private void OpenOrderStatusModal(int orderId, OrderStatus currentStatus)
     {
-        OrderStatus.Pending => "bg-warning text-dark",
-        OrderStatus.Paid => "bg-info text-dark",
-        OrderStatus.Shipped => "bg-primary",
-        OrderStatus.Completed => "bg-success",
-        OrderStatus.Cancelled => "bg-danger",
-        _ => "bg-secondary"
-    };
+        selectedOrderIdForOrderStatus = orderId;
+        newOrderStatus = currentStatus;
+        orderStatusModalError = null;
+        isOrderStatusOpen = true;
+    }
+
+    private void HandleOrderStatusChange(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            newOrderStatus = null;
+            return;
+        }
+
+        if (Enum.TryParse<OrderStatus>(value, out var status))
+        {
+            newOrderStatus = status;
+        }
+        else
+        {
+            newOrderStatus = null;
+            orderStatusModalError = "Neplatná hodnota stavu objednávky.";
+        }
+    }
+
+    private void CloseOrderStatusModal()
+    {
+        isOrderStatusOpen = false;
+        isOrderStatusSaving = false;
+        orderStatusModalError = null;
+        selectedOrderIdForOrderStatus = null;
+        newOrderStatus = null;
+    }
+
+    private async Task UpdateOrderStatusAsync()
+    {
+        if (selectedOrderIdForOrderStatus is null)
+        {
+            orderStatusModalError = "Objednávka nebyla nalezena.";
+            return;
+        }
+
+        if (newOrderStatus is null)
+        {
+            orderStatusModalError = "Musíte vybrat nový stav objednávky.";
+            return;
+        }
+
+        try
+        {
+            isOrderStatusSaving = true;
+            orderStatusModalError = null;
+
+            await OrderService.UpdateStatusAsync(selectedOrderIdForOrderStatus.Value, newOrderStatus.Value);
+
+            MessageService.ShowSuccess("Stav objednávky byl úspěšně změněn.");
+
+            await LoadOrdersAsync();
+            CloseOrderStatusModal();
+        }
+        catch (Exception ex)
+        {
+            orderStatusModalError = ex.Message;
+        }
+        finally
+        {
+            isOrderStatusSaving = false;
+        }
+    }
 }

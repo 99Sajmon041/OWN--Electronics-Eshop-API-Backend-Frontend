@@ -1,8 +1,8 @@
 ﻿using ElectronicsEshop.Domain.Enums;
 
-namespace ElectronicsEshop.Application.Orders.DTOs;
+namespace ElectronicsEshop.Blazor.Models.Orders.GetAdminOrder;
 
-public sealed class AdminOrderDetailDto
+public sealed class OrderAdminModel
 {
     public int Id { get; set; }
     public string CustomerId { get; set; } = default!;
@@ -13,6 +13,5 @@ public sealed class AdminOrderDetailDto
     public DateTime? CanceledAt { get; set; }
     public OrderStatus OrderStatus { get; set; }
     public int ItemsCount { get; set; }
-    public ICollection<AdminOrderItemDto> OrderItems { get; set; } = [];
+    public ICollection<OrderItemAdminModel> OrderItems { get; set; } = [];
 }
-

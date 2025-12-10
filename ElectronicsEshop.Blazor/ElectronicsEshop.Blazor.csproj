@@ -24,9 +24,4 @@
     <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\Orders\GetAdminOrder\" />
-    <Folder Include="Models\Orders\UpdateAdminOrderStatus\" />
-  </ItemGroup>
-
 </Project>

@@ -1,6 +1,8 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
+using ElectronicsEshop.Blazor.Models.Orders.GetAdminOrder;
 using ElectronicsEshop.Blazor.Models.Orders.GetAdminOrders;
 using ElectronicsEshop.Blazor.Utils;
+using ElectronicsEshop.Domain.Enums;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net.Http.Json;
 
@@ -51,5 +53,36 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
         }
 
         return data;
+    }
+
+    public async Task UpdateStatusAsync(int orderId, OrderStatus orderStatus, CancellationToken ct = default)
+    {
+        var body = new
+        {
+            NewStatus = orderStatus
+        };
+
+        var response = await httpClient.PatchAsJsonAsync($"api/admin/orders/{orderId}/changestatus", body, ct);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se urpavit stav objednávky.");
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    public async Task<OrderAdminModel> GetAsync(int orderId, CancellationToken ct = default)
+    {
+        var response = await httpClient.GetAsync($"api/admin/orders/{orderId}", ct);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se získat objednávku.");
+            throw new ApplicationException(message);
+        }
+
+        var data = await response.Content.ReadFromJsonAsync<OrderAdminModel>(ct);
+
+        return data ?? throw new ApplicationException("Nepodařilo se získat objednávku.");
     }
 }

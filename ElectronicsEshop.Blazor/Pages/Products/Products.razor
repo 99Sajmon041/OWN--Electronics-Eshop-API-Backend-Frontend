@@ -1,5 +1,4 @@
 ﻿@page "/admin/products"
-@using ElectronicsEshop.Blazor.Models.Products.Shared
 @attribute [Authorize(Roles = nameof(UserRoles.Admin))]
 
 @inject MessageService MessageService
@@ -9,6 +8,8 @@
 @inject NavigationManager Nav
 @inject HttpClient Http
 @inject IJSRuntime JS
+
+<PageTitle>Správa produktů</PageTitle>
 
 
 <h3 class="d-flex align-items-center gap-2">
