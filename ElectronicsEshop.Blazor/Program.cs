@@ -25,6 +25,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<IOrderAdminService, OrderAdminService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

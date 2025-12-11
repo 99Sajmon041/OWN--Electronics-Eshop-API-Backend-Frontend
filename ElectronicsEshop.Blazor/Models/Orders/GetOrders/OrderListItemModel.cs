@@ -1,8 +1,8 @@
 ﻿using ElectronicsEshop.Domain.Enums;
 
-namespace ElectronicsEshop.Application.Orders.DTOs;
+namespace ElectronicsEshop.Blazor.Models.Orders.GetOrders;
 
-public sealed class OrderListItemDto
+public sealed class OrderListItemModel
 {
     public int Id { get; set; }
     public decimal TotalAmount { get; set; }

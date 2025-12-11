@@ -14,4 +14,5 @@ public sealed class GetOrdersQuery : IRequest<PagedResult<AdminOrderListItemDto>
     public OrderStatus? OrderStatus { get; init; }
     public string? CustomerEmail { get; init; }
     public int? OrderId { get; init; }
+    public string? UserId { get; init; }
 }

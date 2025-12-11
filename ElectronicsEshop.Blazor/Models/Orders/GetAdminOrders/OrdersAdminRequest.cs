@@ -11,4 +11,5 @@ public sealed class OrdersAdminRequest
     public OrderStatus? OrderStatus { get; set; }
     public string? CustomerEmail { get; set; }
     public int? OrderId { get; set; }
+    public string? UserId { get; set; }
 }

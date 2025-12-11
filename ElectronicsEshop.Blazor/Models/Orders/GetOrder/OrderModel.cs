@@ -1,8 +1,8 @@
 ﻿using ElectronicsEshop.Domain.Enums;
 
-namespace ElectronicsEshop.Application.Orders.DTOs;
+namespace ElectronicsEshop.Blazor.Models.Orders.GetOrder;
 
-public sealed class OrderListItemDto
+public sealed class OrderModel
 {
     public int Id { get; set; }
     public decimal TotalAmount { get; set; }
@@ -10,4 +10,5 @@ public sealed class OrderListItemDto
     public DateTime? CanceledAt { get; set; }
     public OrderStatus OrderStatus { get; set; }
     public int ItemsCount { get; set; }
+    public ICollection<OrderItemModel> OrderItems { get; set; } = [];
 }

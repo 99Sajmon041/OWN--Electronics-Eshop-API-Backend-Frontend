@@ -27,7 +27,7 @@ public sealed class GetOrdersQueryHandler(
             throw new UnauthorizedException("Uživatel není přihlášen.");
         }
 
-        var (orders, ordersCount) = await orderRepository.GetPagedForCurrentUserAsync(currentUser.Id, request.Page, request.PageSize, cancellationToken);
+        var (orders, ordersCount) = await orderRepository.GetPagedForCurrentUserAsync(currentUser.Id, request.Page, request.PageSize, request.OrderStatus, cancellationToken);
 
         var items = mapper.Map<IReadOnlyList<OrderListItemDto>>(orders);
 

@@ -6,14 +6,7 @@
 @inject MessageService MessageService
 @inject HttpClient Http
 
-<h3 class="d-flex justify-content-between align-items-center mb-3">
-    <span>Detail objednávky #@model.Id</span>
-    <span class="badge bg-secondary">
-        @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
-    </span>
-</h3>
-
-@if(isLoading)
+@if (isLoading)
 {
     <div class="d-flex justify-content-center align-items-center my-5">
         <div class="spinner-border me-2" role="status" aria-hidden="true"></div>
@@ -22,21 +15,26 @@
 }
 else
 {
-    <div class="mb-3 text-center">
+    <div class="mb-3" style="max-width: 700px; margin: 0 auto; text-align: center;">
+        <h3 class="mb-1">Detail objednávky #@model.Id</h3>
+        <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(model.OrderStatus)">
+            @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+        </span>
+    </div>
+
+    <div class="mb-3 text-center" style="max-width: 700px; margin: 0 auto;">
         <h4 class="mb-0">Zákazník: @model.CustomerFullName</h4>
         <small class="text-muted">@model.CustomerEmail</small>
     </div>
 
     <div class="card shadow-sm border-0" style="max-width: 700px; margin: 0 auto;">
-
         <div class="card-header d-flex justify-content-between align-items-center">
             <button class="btn btn-secondary btn-sm" @onclick="BackToList">
-                ← Zpět na seznam
+                Zpět na seznam všech objednávek
             </button>
         </div>
 
         <div class="card-body">
-
             <div class="row detail-row py-2">
                 <div class="col-5 fw-bold">Celková částka</div>
                 <div class="col-7 text-end">@model.TotalAmount.ToString("N2") Kč</div>
@@ -49,7 +47,9 @@ else
 
             <div class="row detail-row py-2">
                 <div class="col-5 fw-bold">Stav objednávky</div>
-                <div class="col-7">@OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)</div>
+                <div class="col-7">
+                    @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+                </div>
             </div>
 
             <div class="row detail-row py-2">
@@ -118,7 +118,6 @@ else
         </div>
     }
 }
-
 
 @code {
     [Parameter]

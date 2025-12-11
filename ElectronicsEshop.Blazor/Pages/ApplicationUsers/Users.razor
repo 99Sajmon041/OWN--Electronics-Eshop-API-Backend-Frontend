@@ -410,10 +410,8 @@ else
         await LoadUsers();
     }
 
-    // TODO: Implementovat až budou Orders
-
-    private async Task RedirectToUsersOrders(string userId)
+    private void RedirectToUsersOrders(string userId)
     {
-        throw new NotImplementedException();
+        Nav.NavigateTo($"/admin/orders/user/{userId}");
     }
 }

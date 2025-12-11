@@ -7,33 +7,34 @@
 
 <PageTitle>Detail kategorie</PageTitle>
 
-<h3>Detail kategorie @model.Name</h3>
-
-@if(isLoading)
+@if (isLoading)
 {
-    <div class="alert alert-info">
-         Načítám kategorii...
+    <div style="max-width: 600px; margin: 0 auto;" class="mt-3">
+        <div class="alert alert-info mb-0 text-center">
+            Načítám kategorii...
+        </div>
     </div>
 }
-else if(model is null)
+else if (model is null)
 {
-    <div class="alert alert-danger">
-        Kategorie nebyla nalezena.
-    </div>
+    <div style="max-width: 600px; margin: 0 auto;" class="mt-3 text-center">
+        <div class="alert alert-danger">
+            Kategorie nebyla nalezena.
+        </div>
 
-    <button class="btn btn-secondary" @onclick="BackToList">
-        Zpět na seznam
-    </button>
+        <button class="btn btn-secondary" @onclick="BackToList">
+            Zpět na seznam
+        </button>
+    </div>
 }
 else
 {
     <div style="max-width: 600px; margin: 0 auto;" class="mb-3 text-center">
-        <h3 class="mb-0">Detail kategorie @model.Name</h3>
+        <h3 class="mb-0">Detail kategorie: @model.Name</h3>
     </div>
 
     <div class="card shadow-sm border-0" style="max-width: 600px; margin: 0 auto;">
         <div class="card-body p-0">
-
             <div class="row detail-row py-2 px-3">
                 <div class="col-5 fw-bold">ID</div>
                 <div class="col-7">@model.Id</div>
@@ -43,7 +44,6 @@ else
                 <div class="col-5 fw-bold">Název kategorie</div>
                 <div class="col-7">@model.Name</div>
             </div>
-
         </div>
 
         <div class="card-footer d-flex justify-content-between align-items-center">
@@ -76,7 +76,7 @@ else
             isLoading = true;
             model = await CategoryService.GetByIdAsync(Id);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             MessageService.ShowError(ex.Message);
             BackToList();
