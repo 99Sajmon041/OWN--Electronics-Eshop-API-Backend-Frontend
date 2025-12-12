@@ -4,7 +4,7 @@ public sealed class ProductModel
 {
     public int Id { get; init; }
     public string ProductCode { get; init; } = default!;
-    public bool IsActive { get; init; }
+    public bool IsActive { get; set; }
     public string Name { get; init; } = default!;
     public string Description { get; init; } = default!;
     public string CategoryName { get; init; } = default!;

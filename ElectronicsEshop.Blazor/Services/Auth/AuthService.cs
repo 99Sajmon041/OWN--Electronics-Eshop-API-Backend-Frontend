@@ -105,9 +105,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
         public async Task<ResetPasswordResult> ResetPasswordAsync(ResetPasswordModel request, CancellationToken ct = default)
         {
-            var response = await httpClient.PostAsJsonAsync("api/aut/reset-password", request, ct);
+            var response = await httpClient.PostAsJsonAsync("api/auth/reset-password", request, ct);
 
-            if(response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
                 return new ResetPasswordResult
                 {

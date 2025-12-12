@@ -19,9 +19,9 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
             ["from"] = request.From?.ToString("yyyy-MM-dd"),
             ["to"] = request.To?.ToString("yyyy-MM-dd"),
             ["orderStatus"] = request.OrderStatus?.ToString(),
-            ["customerEmail"] = request.CustomerEmail,
+            ["customerEmail"] = string.IsNullOrWhiteSpace(request.CustomerEmail) ? null : request.CustomerEmail,
             ["orderId"] = request.OrderId?.ToString(),
-            ["userId"] = request.UserId
+            ["userId"] = string.IsNullOrWhiteSpace(request.UserId) ? null : request.UserId,
         };
 
         var filtered = query

@@ -53,12 +53,18 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
         if (!string.IsNullOrWhiteSpace(userId))
             query = query.Where(o => o.ApplicationUser.Id == userId);
-
+        
         if (from is not null)
-            query = query.Where(o => DateOnly.FromDateTime(o.CreatedAt) >= from.Value);
+        {
+            var fromDt = from.Value.ToDateTime(TimeOnly.MinValue);
+            query = query.Where(o => o.CreatedAt >= fromDt);
+        }
 
         if (to is not null)
-            query = query.Where(o => DateOnly.FromDateTime(o.CreatedAt) <= to.Value);
+        {
+            var toExclusive = to.Value.AddDays(1).ToDateTime(TimeOnly.MinValue);
+            query = query.Where(o => o.CreatedAt < toExclusive);
+        }
 
         if (status is not null)
             query = query.Where(o => o.OrderStatus == status.Value);
@@ -70,9 +76,9 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
         var orders = await query
             .OrderByDescending(o => o.CreatedAt)
+            .ThenByDescending(o => o.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(ct);
 
         return (orders, ordersCount);

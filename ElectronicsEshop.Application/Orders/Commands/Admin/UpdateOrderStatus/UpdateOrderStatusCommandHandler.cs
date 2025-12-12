@@ -21,7 +21,7 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
             throw new NotFoundException(nameof(Order), request.Id);
         }
 
-        if(order.OrderStatus == OrderStatus.Cancelled || order.OrderStatus == OrderStatus.Completed)
+        if(order.OrderStatus == OrderStatus.Canceled || order.OrderStatus == OrderStatus.Completed)
         {
             logger.LogError("Objednávka s ID: {OrderId} se stavem Zrušena / Dokončena nelze již upravovat.", request.Id);
             throw new DomainException("Objednávka se stavem Zrušena / Dokončena nelze již upravovat.");
@@ -45,7 +45,7 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
                 orderState = "Zaplacena";
                 break;
 
-            case OrderStatus.Cancelled :
+            case OrderStatus.Canceled :
                 orderState = "Zrušena";
                 break;
 

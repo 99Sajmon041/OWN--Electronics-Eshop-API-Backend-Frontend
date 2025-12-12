@@ -12,7 +12,7 @@ public static class OrderStatusHelper
             { OrderStatus.Paid, "Zaplaceno" },
             { OrderStatus.Shipped, "Odesláno" },
             { OrderStatus.Completed, "Dokončeno" },
-            { OrderStatus.Cancelled, "Zrušeno" }
+            { OrderStatus.Canceled, "Zrušeno" }
         };
     }
 
@@ -24,7 +24,7 @@ public static class OrderStatusHelper
             OrderStatus.Paid => "Zaplaceno",
             OrderStatus.Shipped => "Odesláno",
             OrderStatus.Completed => "Dokončeno",
-            OrderStatus.Cancelled => "Zrušeno",
+            OrderStatus.Canceled => "Zrušeno",
             _ => "bg-secondary"
         };
     }
@@ -37,7 +37,7 @@ public static class OrderStatusHelper
             OrderStatus.Paid => "bg-info text-dark",
             OrderStatus.Shipped => "bg-primary",
             OrderStatus.Completed => "bg-success",
-            OrderStatus.Cancelled => "bg-danger",
+            OrderStatus.Canceled => "bg-danger",
             _ => "bg-secondary"
         };
     }

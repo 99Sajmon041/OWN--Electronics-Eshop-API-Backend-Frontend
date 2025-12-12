@@ -45,8 +45,10 @@ public sealed class EmailService : IEmailService
             From = new MailAddress(_settings.FromAddress, _settings.FromName),
             Subject = subject,
             Body = bodyBuilder.ToString(),
-            IsBodyHtml = false
+            IsBodyHtml = false,
         };
+
+        mailMessage.To.Add(email);
 
         using var SmtpClient = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
         {

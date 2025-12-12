@@ -25,9 +25,9 @@ public sealed class ResetPasswordCommandHandler(UserManager<ApplicationUser> use
             throw new DomainException("Odkaz pro reset hesla je neplatný nebo vypršel.");
         }
 
-        var decodedToken = WebUtility.UrlEncode(request.Token);
+        var token = WebUtility.UrlDecode(request.Token).Replace(" ", "+");
 
-        var result = await userManager.ResetPasswordAsync(user, decodedToken, request.NewPassword);
+        var result = await userManager.ResetPasswordAsync(user, token, request.NewPassword);
 
         if (!result.Succeeded)
         {

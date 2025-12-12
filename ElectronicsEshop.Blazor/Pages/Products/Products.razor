@@ -112,17 +112,25 @@ else
             Stránka @model.Page / @totalPages,
             celkem @model.TotalCount položek
         </div>
-        <div class="btn-group">
-            <button class="btn btn-outline-secondary"
-                    @onclick="PreviousPageAsync"
-                    disabled="@(!canGoPrevious)">
-                Předchozí
+
+        <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-primary"
+                    @onclick="OnCreateProduct">
+                + Přidat produkt
             </button>
-            <button class="btn btn-outline-secondary"
-                    @onclick="NextPageAsync"
-                    disabled="@(!canGoNext)">
-                Další
-            </button>
+
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary"
+                        @onclick="PreviousPageAsync"
+                        disabled="@(!canGoPrevious)">
+                    Předchozí
+                </button>
+                <button class="btn btn-outline-secondary"
+                        @onclick="NextPageAsync"
+                        disabled="@(!canGoNext)">
+                    Další
+                </button>
+            </div>
         </div>
     </div>
 
@@ -178,9 +186,10 @@ else
                         <div class="d-flex flex-wrap gap-1 justify-content-end">
 
                             <div class="form-check form-switch align-self-center me-1">
-                                <input type="checkbox" class="form-check-input"
-                                       checked="@product.IsActive"
-                                       @onchange="e => OnActiveChangedAsync(product.Id, (bool)e.Value!)" />
+                                <InputCheckbox class="form-check-input"
+                                               Value="product.IsActive"
+                                               ValueChanged="(bool value) => OnActiveChangedAsync(product, value)"
+                                               ValueExpression="@(() => product.IsActive)" />
                             </div>
 
                             <button class="btn btn-sm btn-outline-secondary btn-action me-1"
@@ -230,7 +239,7 @@ else
              OnCancel="CloseStockModal"
              OnSave="UpdateStockQtyAsync">
     <div class="mb-3">
-        <label class="form-label">Nové množství skladem</label>
+        <label class="form-label">Přidat množství skladem</label>
         <InputNumber @bind-Value="newStockQty" class="form-control" />
     </div>
 </ModalDialog>
@@ -593,25 +602,29 @@ else
 
     // Update state of product action---------------------------------------------------------
 
-    private async Task OnActiveChangedAsync(int productId, bool isActive)
+    private async Task OnActiveChangedAsync(ProductModel product, bool newValue)
     {
-        var state = isActive ? "aktivní" : "neaktivní";
+        var previous = product.IsActive;
+        var state = newValue ? "aktivní" : "neaktivní";
 
         if (!await JS.ConfirmAction($"Opravdu si přejete nastavit stav produktu na: {state} ?"))
         {
+            product.IsActive = previous;
+            StateHasChanged();
             return;
         }
 
         try
         {
-            await ProductAdminService.SetActiveAsync(productId, isActive);
+            await ProductAdminService.SetActiveAsync(product.Id, newValue);
 
             MessageService.ShowSuccess($"Produktu nastaven stav jako: {state}.");
-
             await LoadProductsAsync();
         }
         catch (Exception ex)
         {
+            product.IsActive = previous;
+            StateHasChanged();
             MessageService.ShowError(ex.Message);
         }
     }

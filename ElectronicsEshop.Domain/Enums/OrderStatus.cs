@@ -8,7 +8,7 @@ public enum OrderStatus
     New,
     Pending,
     Paid,
-    Cancelled,
+    Canceled,
     Shipped,
     Completed
 }
