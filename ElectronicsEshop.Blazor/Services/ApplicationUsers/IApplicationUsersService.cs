@@ -1,4 +1,4 @@
-﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.CreateUser;
+﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.Admin.CreateUser;
 using ElectronicsEshop.Blazor.Models.Common;
 
 namespace ElectronicsEshop.Blazor.Services.ApplicationUsers;

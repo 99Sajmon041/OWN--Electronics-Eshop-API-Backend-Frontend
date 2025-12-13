@@ -463,9 +463,7 @@ else
     private async Task UpdateStockQtyAsync()
     {
         if (!await JS.ConfirmAction($"Opravdu si přejete přidat počet kusů: {newStockQty} na sklad ?"))
-        {
             return;
-        }
 
         if (selectedProductIdForStock is null)
             return;

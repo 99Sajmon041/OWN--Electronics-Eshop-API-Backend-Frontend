@@ -1,15 +1,13 @@
 ﻿@inherits LayoutComponentBase
-
 @inject MessageService MessageService
 
-<div class="page">
-    <div class="sidebar">
+<div class="app-layout">
+    <aside class="app-sidebar">
         <NavMenu />
-    </div>
+    </aside>
 
-    <main>
-
-        @if(MessageService.Current is not null)
+    <main class="app-main">
+        @if (MessageService.Current is not null)
         {
             var css = MessageService.Current.Type switch
             {
@@ -30,6 +28,7 @@
         </article>
     </main>
 </div>
+
 
 @code{
     protected override void OnInitialized()

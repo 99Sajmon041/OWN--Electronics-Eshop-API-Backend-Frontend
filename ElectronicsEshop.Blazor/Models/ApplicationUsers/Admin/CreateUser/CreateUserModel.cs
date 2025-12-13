@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using ElectronicsEshop.Blazor.Models.Common;
 
-namespace ElectronicsEshop.Blazor.Models.ApplicationUsers.CreateUser;
+namespace ElectronicsEshop.Blazor.Models.ApplicationUsers.Admin.CreateUser;
 
 public sealed class CreateUserModel
 {

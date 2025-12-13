@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ElectronicsEshop.Application.ApplicationUsers.Commands.Self.UpdateUser;
-using ElectronicsEshop.Application.ApplicationUsers.DTOs;
 using ElectronicsEshop.Application.Exceptions;
 using ElectronicsEshop.Application.User;
 using ElectronicsEshop.Domain.Entities;
@@ -12,9 +11,9 @@ public sealed class UpdateProfileCommandHandler(
     IUserContext userContext,
     ILogger<UpdateProfileCommandHandler> logger,
     UserManager<ApplicationUser> userManager,
-    IMapper mapper) : IRequestHandler<UpdateProfileCommand, ApplicationUserDto>
+    IMapper mapper) : IRequestHandler<UpdateProfileCommand>
 {
-    public async Task<ApplicationUserDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -50,8 +49,5 @@ public sealed class UpdateProfileCommandHandler(
 
             throw new DomainException("Nepodařilo se aktualizovat profil uživatele.");
         }
-
-        var dto = mapper.Map<ApplicationUserDto>(user);
-        return dto;
     }
 }

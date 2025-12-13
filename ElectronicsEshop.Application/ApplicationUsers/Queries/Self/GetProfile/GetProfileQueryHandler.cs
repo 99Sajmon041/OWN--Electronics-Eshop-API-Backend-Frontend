@@ -3,6 +3,7 @@ using ElectronicsEshop.Application.ApplicationUsers.DTOs;
 using ElectronicsEshop.Application.Exceptions;
 using ElectronicsEshop.Application.User;
 using ElectronicsEshop.Domain.Entities;
+using ElectronicsEshop.Domain.RepositoryInterfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Queries.Self.GetProfile;
 public sealed class GetProfileQueryHandler(
     IUserContext userContext,
     UserManager<ApplicationUser> userManager,
+    IOrderRepository orderRepository,
     ILogger<GetProfileQueryHandler> logger,
     IMapper mapper) : IRequestHandler<GetProfileQuery, ApplicationUserDto>
 {
@@ -27,7 +29,7 @@ public sealed class GetProfileQueryHandler(
             throw new UnauthorizedException("Uživatel není přihlášen.");
         }
 
-        var user = await userManager.FindByEmailAsync(currentUser.Email);
+        var user = await userManager.FindByIdAsync(currentUser.Id);
 
         if (user is null)
         {
@@ -36,6 +38,7 @@ public sealed class GetProfileQueryHandler(
         }
 
         var appUser = mapper.Map<ApplicationUserDto>(user);
+        appUser.OrdersCount = await orderRepository.GetOrdersCountForUserAsync(user.Id, cancellationToken);
 
         logger.LogInformation("Profil uživatele {UserEmail} byl úspěšně načten.", currentUser.Email);
 

@@ -1,0 +1,401 @@
+﻿@page "/profile"
+@using ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.UpdatePassword
+
+@inject IApplicationUsersSelf ApplicationUserServiceSelf
+@inject MessageService MessageService
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Můj profil</PageTitle>
+
+<div class="container">
+    <div class="d-flex flex-column align-items-center mb-3 text-center">
+        <h3 class="mb-0">Můj profil</h3>
+        <div class="text-muted small">Správa osobních údajů a zabezpečení účtu</div>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <a class="btn btn-outline-secondary" href="/orders">
+                <span class="bi bi-receipt me-1"></span>
+                Moje objednávky
+            </a>
+            <a class="btn btn-primary" href="/profile/update">
+                <span class="bi bi-pencil-square me-1"></span>
+                Upravit profil
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            Načítám profil...
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center g-3">
+            <div class="col-12 col-xxl-10">
+
+                <div class="row g-3">
+                    <div class="col-12 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <div class="h5 mb-1">@FullName</div>
+                                    <div class="text-muted">@model.Email</div>
+                                </div>
+
+                                <hr />
+
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-muted">Počet objednávek</span>
+                                    <strong>@model.OrdersCount?.ToString()</strong>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <span class="text-muted">Datum narození</span>
+                                    <strong>@model.DateOfBirth.ToString("dd.MM.yyyy")</strong>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-warning" @onclick="OpenPasswordModal">
+                                        <span class="bi bi-shield-lock me-1"></span>
+                                        Změnit heslo
+                                    </button>
+
+                                    <button type="button" class="btn btn-danger" @onclick="OnDeactivateClicked">
+                                        <span class="bi bi-person-x me-1"></span>
+                                        Deaktivovat účet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-8">
+                        <div class="card mb-3">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span>
+                                    <span class="bi bi-person-circle me-1"></span>
+                                    Osobní údaje
+                                </span>
+
+                                <a class="btn btn-sm btn-outline-light" href="/profile/update">
+                                    Upravit
+                                </a>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Jméno</label>
+                                        <div class="form-control bg-transparent">@model.FirstName</div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Příjmení</label>
+                                        <div class="form-control bg-transparent">@model.LastName</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">E-mail</label>
+                                        <div class="form-control bg-transparent">@model.Email</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Telefon</label>
+                                        <div class="form-control bg-transparent">@model.PhoneNumber</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span>
+                                    <span class="bi bi-geo-alt me-1"></span>
+                                    Adresa
+                                </span>
+
+                                <a class="btn btn-sm btn-outline-light" href="/profile/update">
+                                    Upravit
+                                </a>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Ulice</label>
+                                        <div class="form-control bg-transparent">@model.Address.Street</div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Číslo domu</label>
+                                        <div class="form-control bg-transparent">@model.Address.NumberOfHouse</div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">Město</label>
+                                        <div class="form-control bg-transparent">@model.Address.Town</div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label text-muted">PSČ</label>
+                                        <div class="form-control bg-transparent">@model.Address.PostalCode</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<ModalDialog IsOpen="isPasswordModalOpen"
+             Title="Změna hesla"
+             ErrorMessage="@passwordModalError"
+             IsBusy="isPasswordSaving"
+             OnCancel="ClosePasswordModal"
+             OnSave="ModalSavePassword">
+
+    <EditForm EditContext="_passEditContext" OnSubmit="OnPasswordFormSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Aktuální heslo</label>
+            <InputText type="password" @bind-Value="passModel.OldPassword" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nové heslo</label>
+            <InputText type="password" @bind-Value="passModel.NewPassword" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Potvrzení nového hesla</label>
+            <InputText type="password" @bind-Value="passModel.ConfirmPassword" class="form-control" />
+        </div>
+    </EditForm>
+
+</ModalDialog>
+
+
+<ModalDialog IsOpen="isDeactivateModalOpen"
+             Title="Deaktivace účtu"
+             ErrorMessage="@deactivateModalError"
+             IsBusy="isDeactivateSaving"
+             CancelText="Zrušit"
+             SaveText="Deaktivovat"
+             OnCancel="CloseDeactivateModal"
+             OnSave="ModalSaveDeactivate">
+
+    <EditForm EditContext="_deactivateEditContext" OnSubmit="OnDeactivateFormSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="alert alert-warning">
+            <strong>Pozor:</strong> Deaktivací účtu se odhlásíte a účet nebude možné používat, dokud jej znovu neaktivujete.
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Potvrďte heslem</label>
+            <InputText type="password" class="form-control" @bind-Value="deactivateModel.Password" />
+        </div>
+    </EditForm>
+
+</ModalDialog>
+
+
+@code {
+    private ApplicationUserModel model = new();
+    private bool isLoading = true;
+
+    private bool isPasswordModalOpen;
+    private bool isPasswordSaving;
+    private UpdatePasswordModel passModel = new();
+    private EditContext? _passEditContext;
+    private bool _passSubmitRequested;
+    private string? passwordModalError;
+
+    private bool isDeactivateModalOpen;
+    private bool isDeactivateSaving;
+    private DeactivateAccountModel deactivateModel = new();
+    private EditContext? _deactivateEditContext;
+    private bool _deactivateSubmitRequested;
+    private string? deactivateModalError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfileAsync();
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            model = await ApplicationUserServiceSelf.GetProfileAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            Nav.NavigateTo("/");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string FullName => $"{model.FirstName} {model.LastName}";
+
+    @*------------------------------------------password-modal------------------------------------------*@
+
+    private void OpenPasswordModal()
+    {
+        passwordModalError = null;
+        passModel = new();
+        _passEditContext = new EditContext(passModel);
+        _passSubmitRequested = false;
+        isPasswordModalOpen = true;
+    }
+
+    private async Task ModalSavePassword()
+    {
+        _passSubmitRequested = true;
+        await OnPasswordFormSubmit();
+    }
+
+    private async Task OnPasswordFormSubmit()
+    {
+        if (_passEditContext is null)
+            return;
+
+        if (!_passSubmitRequested)
+            return;
+
+        _passSubmitRequested = false;
+
+        if (!_passEditContext.Validate())
+            return;
+
+        await UpdatePasswordAsync();
+    }
+
+    private void ClosePasswordModal()
+    {
+        isPasswordModalOpen = false;
+        passwordModalError = null;
+    }
+
+    private async Task UpdatePasswordAsync()
+    {
+        isPasswordSaving = true;
+        passwordModalError = null;
+
+        try
+        {
+            var result = await ApplicationUserServiceSelf.UpdatePasswordAsync(passModel, CancellationToken.None);
+
+            if (!result.Success)
+            {
+                passwordModalError = result.ErrorMessage ?? "Nepodařilo se změnit heslo.";
+                return;
+            }
+
+            isPasswordModalOpen = false;
+            MessageService.ShowSuccess("Heslo bylo úspěšně změněno.");
+
+            await AuthService.LogoutAsync();
+            Nav.NavigateTo("/login");
+        }
+        catch(Exception ex)
+        {
+            passwordModalError = ex.Message;
+        }
+        finally
+        {
+            isPasswordSaving = false;
+        }
+    }
+    @*------------------------------------------deactivate-modal------------------------------------------*@
+
+    private async Task OnDeactivateClicked()
+    {
+        var ok = await JS.ConfirmAction("⚠️ Opravdu si přejete deaktivovat účet? Tuto akci lze později obnovit pouze přes podporu.");
+        if (!ok) return;
+
+        OpenDeactivateModal();
+    }
+
+    private void OpenDeactivateModal()
+    {
+        deactivateModalError = null;
+        deactivateModel = new();
+        _deactivateEditContext = new EditContext(deactivateModel);
+        _deactivateSubmitRequested = false;
+        isDeactivateModalOpen = true;
+    }
+
+    private void CloseDeactivateModal()
+    {
+        isDeactivateModalOpen = false;
+        deactivateModalError = null;
+    }
+
+    private async Task ModalSaveDeactivate()
+    {
+        _deactivateSubmitRequested = true;
+        await OnDeactivateFormSubmit();
+    }
+
+    private async Task OnDeactivateFormSubmit()
+    {
+        if (_deactivateEditContext is null)
+            return;
+
+        if (!_deactivateSubmitRequested)
+            return;
+
+        _deactivateSubmitRequested = false;
+
+        if (!_deactivateEditContext.Validate())
+            return;
+
+        await DeactivateAccountAsync();
+    }
+
+    private async Task DeactivateAccountAsync()
+    {
+        isDeactivateSaving = true;
+        deactivateModalError = null;
+
+        try
+        {
+            var result = await ApplicationUserServiceSelf.DeactivateAccountAsync(deactivateModel);
+
+            if (!result.Success)
+            {
+                deactivateModalError = result.ErrorMessage ?? "Nepodařilo se deaktivovat účet.";
+                return;
+            }
+
+            isDeactivateModalOpen = false;
+            MessageService.ShowSuccess("Účet byl deaktivován.");
+
+            await AuthService.LogoutAsync();
+            Nav.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            deactivateModalError = ex.Message;
+        }
+        finally
+        {
+            isDeactivateSaving = false;
+        }
+    }
+}

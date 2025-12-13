@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ElectronicsEshop.Application.ApplicationUsers.Commands.Self.UpdateUser;
 
-public sealed class UpdateProfileCommand : IRequest<ApplicationUserDto>
+public sealed class UpdateProfileCommand : IRequest
 {
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;

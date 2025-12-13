@@ -126,3 +126,46 @@ code {
 .detail-row:nth-child(even) {
     background-color: #ffffff;
 }
+
+.sidebar {
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.layout-sidebar {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+.layout-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.app-layout {
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 260px; /* uprav dle sebe */
+    overflow-y: auto;
+    background: #2b0033; /* tvoje fialová */
+}
+
+.app-main {
+    margin-left: 260px; /* musí sedìt s šíøkou sidebaru */
+    min-height: 100vh;
+}

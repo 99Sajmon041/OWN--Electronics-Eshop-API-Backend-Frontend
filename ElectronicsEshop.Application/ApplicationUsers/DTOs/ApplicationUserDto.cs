@@ -10,4 +10,5 @@ public class ApplicationUserDto
     public bool Active { get; set; }
     public DateOnly DateOfBirth { get; set; }
     public AddressDto Address { get; set; } = default!;
+    public int? OrdersCount { get; set; }
 }

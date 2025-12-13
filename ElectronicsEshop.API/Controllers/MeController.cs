@@ -18,7 +18,7 @@ namespace ElectronicsEshop.API.Controllers
         [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<ApplicationUserDto>> Profile(CancellationToken ct)
+        public async Task<ActionResult<ApplicationUserDto>> GetProfile(CancellationToken ct)
         {
             var user = await sender.Send(new GetProfileQuery(), ct);
             return Ok(user);
@@ -31,10 +31,10 @@ namespace ElectronicsEshop.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ApplicationUserDto>> Update([FromBody] UpdateProfileCommand command, CancellationToken ct)
+        public async Task<IActionResult> Update([FromBody] UpdateProfileCommand command, CancellationToken ct)
         {
-            var updatedUser = await sender.Send(command, ct);
-            return Ok(updatedUser);
+            await sender.Send(command, ct);
+            return NoContent();
         }
 
         [HttpPatch("update-password")]
@@ -50,16 +50,16 @@ namespace ElectronicsEshop.API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("delete")]
+        [HttpPost("deactivate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Delete(CancellationToken ct)
+        public async Task<IActionResult> Deactivate([FromBody] DeleteUserCommand commnad, CancellationToken ct)
         {
-            await sender.Send(new DeleteUserCommand(), ct);
+            await sender.Send(commnad, ct);
             return NoContent();
         }
     }

@@ -1,4 +1,4 @@
-﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.CreateUser;
+﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.Admin.CreateUser;
 using ElectronicsEshop.Blazor.Models.Common;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.WebUtilities;
@@ -18,9 +18,8 @@ public sealed class ApplicationUsersService(HttpClient httpClient) : IApplicatio
             throw new ApplicationException(message);
         }
 
-        var data = await response.Content.ReadFromJsonAsync<ApplicationUserModel>(ct) ?? throw new KeyNotFoundException("Uživatel nebyl nalezen.");
-
-        data.OrdersCount = await httpClient.GetFromJsonAsync<int>($"api/users/{id}/orders/count", ct);
+        var data = await response.Content.ReadFromJsonAsync<ApplicationUserModel>(ct)
+            ?? throw new KeyNotFoundException("Nepodařilo se získat uživatele.");
 
         return data;
     }

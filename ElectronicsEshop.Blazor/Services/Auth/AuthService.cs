@@ -3,6 +3,7 @@ using ElectronicsEshop.Blazor.Models.Auth.ForgotPassword;
 using ElectronicsEshop.Blazor.Models.Auth.Login;
 using ElectronicsEshop.Blazor.Models.Auth.Register;
 using ElectronicsEshop.Blazor.Models.Auth.ResetPassword;
+using ElectronicsEshop.Blazor.Models.Common;
 using ElectronicsEshop.Blazor.Models.Constants;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -13,9 +14,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 {
     public sealed class AuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthenticationStateProvider authStateProvider) : IAuthService
     {
-        public async Task<LoginResult> LoginAsync(LoginModel request, CancellationToken ct = default)
+        public async Task<RequestResult> LoginAsync(LoginModel model, CancellationToken ct = default)
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/login", request, ct);
+            var response = await httpClient.PostAsJsonAsync("api/auth/login", model, ct);
 
             if (response.IsSuccessStatusCode)
             {
@@ -23,7 +24,7 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
                 if (loginResponse is null || string.IsNullOrWhiteSpace(loginResponse.AccessToken))
                 {
-                    return new LoginResult
+                    return new RequestResult
                     {
                         Success = false,
                         ErrorMessage = "Server nevrátil platný přihlašovací token."
@@ -40,12 +41,12 @@ namespace ElectronicsEshop.Blazor.Services.Auth
                     await apiAuth.MarkUserAsAuthenticatedAsync();
                 }
 
-                return new LoginResult { Success = true };
+                return new RequestResult { Success = true };
             }
 
             var message = await response.ReadProblemMessageAsync("Došlo k neočekávané chybě při přihlášení.");
 
-            return new LoginResult
+            return new RequestResult
             {
                 Success = false,
                 ErrorMessage = message
@@ -64,9 +65,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
             }
         }
 
-        public async Task<RegisterResult> RegisterAsync(RegisterModel request, CancellationToken ct = default)
+        public async Task<RegisterResult> RegisterAsync(RegisterModel model, CancellationToken ct = default)
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/register", request, ct);
+            var response = await httpClient.PostAsJsonAsync("api/auth/register", model, ct);
             
             if(response.IsSuccessStatusCode)
             {
@@ -82,9 +83,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
             };
         }
 
-        public async Task<ForgotPasswordResult> ForgotPasswordAsync(ForgotPasswordModel request, CancellationToken ct = default)
+        public async Task<ForgotPasswordResult> ForgotPasswordAsync(ForgotPasswordModel model, CancellationToken ct = default)
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/forgot-password", request, ct);
+            var response = await httpClient.PostAsJsonAsync("api/auth/forgot-password", model, ct);
 
             if(response.IsSuccessStatusCode)
             {
@@ -103,9 +104,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
             };
         }
 
-        public async Task<ResetPasswordResult> ResetPasswordAsync(ResetPasswordModel request, CancellationToken ct = default)
+        public async Task<ResetPasswordResult> ResetPasswordAsync(ResetPasswordModel model, CancellationToken ct = default)
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/reset-password", request, ct);
+            var response = await httpClient.PostAsJsonAsync("api/auth/reset-password", model, ct);
 
             if (response.IsSuccessStatusCode)
             {

@@ -13,7 +13,7 @@ public class AppUserMappingProfile : Profile
         CreateMap<Address, AddressDto>().ReverseMap();
 
         CreateMap<ApplicationUser, ApplicationUserDto>()
-            .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address));
+            .ForMember(d => d.Address, opt => opt.MapFrom(s => s.Address ?? new Address()));
 
         CreateMap<CreateUserCommand, ApplicationUser>()
             .ForMember(x => x.Orders, opt => opt.Ignore())

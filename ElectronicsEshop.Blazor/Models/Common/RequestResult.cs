@@ -1,6 +1,6 @@
-﻿namespace ElectronicsEshop.Blazor.Models.Auth.Login;
+﻿namespace ElectronicsEshop.Blazor.Models.Common;
 
-public sealed class LoginResult
+public sealed class RequestResult
 {
     public bool Success { get; init; }
     public string? ErrorMessage { get; init; }

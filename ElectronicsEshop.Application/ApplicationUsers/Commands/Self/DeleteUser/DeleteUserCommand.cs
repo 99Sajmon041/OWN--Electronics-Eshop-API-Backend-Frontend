@@ -4,4 +4,5 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Commands.Self.DeleteUser
 
 public sealed class DeleteUserCommand : IRequest
 {
+    public string Password { get; set; } = default!;
 }
