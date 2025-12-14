@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using ElectronicsEshop.Blazor.Models.Common;
+using ElectronicsEshop.Blazor.Validators;
 
 namespace ElectronicsEshop.Blazor.Models.ApplicationUsers.Admin.CreateUser;
 
-public sealed class CreateUserModel
+public sealed class CreateUserModel : IHasAddress, IValidatableObject
 {
     [Required(ErrorMessage = "Jméno je povinný údaj.")]
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Délka jména musí být mezi 2 a 100 znaky.")]
@@ -38,4 +39,11 @@ public sealed class CreateUserModel
 
     [Required(ErrorMessage = "Adresa je povinný údaj.")]
     public AddressModel Address { get; set; } = new();
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+        results.AddRange(this.ValidateAddress());
+        return results;
+    }
 }

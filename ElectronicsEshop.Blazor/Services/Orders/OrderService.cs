@@ -1,6 +1,6 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Orders.GetOrder;
-using ElectronicsEshop.Blazor.Models.Orders.GetOrders;
+using ElectronicsEshop.Blazor.Models.Orders.Self.GetOrder;
+using ElectronicsEshop.Blazor.Models.Orders.Self.GetOrders;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net.Http.Json;

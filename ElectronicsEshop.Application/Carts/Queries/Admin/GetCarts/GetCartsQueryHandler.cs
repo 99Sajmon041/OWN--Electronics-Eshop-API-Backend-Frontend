@@ -15,7 +15,7 @@ public sealed class GetCartsQueryHandler(ILogger<GetCartsQueryHandler> logger,
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (carts, cartsCount) = await cartRepository.GetAllCartsForAdminAsync(request.UserId, request.Page, request.PageSize, cancellationToken);
+        var (carts, cartsCount) = await cartRepository.GetAllCartsForAdminAsync(request.Email, request.Page, request.PageSize, cancellationToken);
 
         logger.LogInformation("Admin si zobrazil seznam uživatelských košíků, celkem: {CartsCount}", cartsCount);
 

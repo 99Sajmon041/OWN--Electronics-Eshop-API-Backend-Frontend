@@ -36,7 +36,7 @@ namespace ElectronicsEshop.API.Controllers
             return Ok();
         }
 
-        [HttpDelete("items")]
+        [HttpDelete("delete/items")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -48,17 +48,18 @@ namespace ElectronicsEshop.API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("items/{id:int:min(1)}")]
+        [HttpDelete("delete/items/{id:int:min(1)}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
+        public async Task<IActionResult> DeleteItem([FromRoute] int id, CancellationToken ct)
         {
             await mediator.Send(new DeleteCartItemCommand(id), ct);
             return NoContent();
         }
+
         [HttpPost("submit")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

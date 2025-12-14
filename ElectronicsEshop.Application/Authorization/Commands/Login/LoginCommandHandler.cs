@@ -52,13 +52,17 @@ public sealed class LoginCommandHandler(
         }
 
         var roles = await userManager.GetRolesAsync(user);
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
 
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.Email ?? string.Empty)
+            new(ClaimTypes.Name, string.IsNullOrWhiteSpace(fullName) ? (user.Email ?? string.Empty) : fullName),
+            new("first_name", user.FirstName ?? string.Empty),
+            new("last_name", user.LastName ?? string.Empty),
+            new("full_name", fullName)
         };
 
         foreach(var role in roles)
@@ -66,11 +70,13 @@ public sealed class LoginCommandHandler(
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
+        /* For testing purposes only
         if(user.DateOfBirth != default)
         {
             var dob = user.DateOfBirth.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
             claims.Add(new Claim(ClaimTypes.DateOfBirth, dob));
         }
+        */
 
         var key = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
 

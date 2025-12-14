@@ -1,5 +1,5 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Products.GetProducts;
+using ElectronicsEshop.Blazor.Models.Products.Self.GetProducts;
 using ElectronicsEshop.Blazor.Models.Products.Shared;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.WebUtilities;

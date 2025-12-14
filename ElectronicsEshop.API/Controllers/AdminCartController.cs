@@ -2,9 +2,9 @@
 using ElectronicsEshop.Application.Carts.Queries.Admin.GetCarts;
 using ElectronicsEshop.Application.Common.Pagination;
 using ElectronicsEshop.Domain.Enums;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace ElectronicsEshop.API.Controllers
 {

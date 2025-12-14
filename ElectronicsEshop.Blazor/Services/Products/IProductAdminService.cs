@@ -1,15 +1,15 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Products.CreateAdminProduct;
-using ElectronicsEshop.Blazor.Models.Products.GetAdminProducts;
+using ElectronicsEshop.Blazor.Models.Products.Admin.CreateAdminProduct;
+using ElectronicsEshop.Blazor.Models.Products.Admin.GetAdminProducts;
+using ElectronicsEshop.Blazor.Models.Products.Admin.UpdateAdminProduct;
 using ElectronicsEshop.Blazor.Models.Products.Shared;
-using ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace ElectronicsEshop.Blazor.Services.Products;
 
 public interface IProductAdminService
 {
-    Task<PagedResult<ProductModel>> GetAllAsync(ProductAdminRequest request, CancellationToken ct = default);
+    Task<PagedResult<ProductModel>> GetAllAsync(ProductRequest request, CancellationToken ct = default);
     Task<ProductModel> GetByIdAsync(int productId, CancellationToken ct = default);
     Task CreateAsync(CreateProductModel model, CancellationToken ct = default);
     Task UpdateStockQtyAsync(int productId, int newStockQty, CancellationToken ct = default);

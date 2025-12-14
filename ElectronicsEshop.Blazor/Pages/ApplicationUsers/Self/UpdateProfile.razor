@@ -1,7 +1,182 @@
 ﻿@page "/profile/update"
 
-Jsi hňup :-)
+@attribute [Authorize]
+
+@inject NavigationManager Nav
+@inject MessageService MessageService
+@inject IApplicationUsersService ApplicationUsersSelfService
+
+<PageTitle>Upravit profil</PageTitle>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7 col-xl-6">
+
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h3 class="mb-1">Upravit profil</h3>
+                    <div class="text-muted small">Zkontroluj své údaje a ulož změny.</div>
+                </div>
+
+                <button type="button" class="btn btn-outline btn-sm"
+                        @onclick="BackToProfile" disabled="@isLoading">
+                    Zpět
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="spinner-border" role="status" aria-hidden="true"></div>
+                            <div>
+                                <div class="fw-semibold">Načítám profil…</div>
+                                <div class="text-muted small">Chvilku strpení.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="model" OnValidSubmit="OnUpdateValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+
+                            <h5 class="mb-3">Osobní údaje</h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Jméno</label>
+                                    <InputText class="form-control" @bind-Value="model.FirstName" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Příjmení</label>
+                                    <InputText class="form-control" @bind-Value="model.LastName" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Datum narození</label>
+                                    <InputDate class="form-control" @bind-Value="model.DateOfBirth" />
+                                    <div class="form-text">Věk musí být alespoň 15 let.</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Telefonní číslo</label>
+                                    <InputText class="form-control" @bind-Value="model.PhoneNumber" />
+                                    <div class="form-text">Pouze číslice, mezery a znak +</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <h5 class="mb-3">Adresa</h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Ulice</label>
+                                    <InputText class="form-control" @bind-Value="model.Address.Street" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Číslo domu</label>
+                                    <InputText class="form-control" @bind-Value="model.Address.NumberOfHouse" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">PSČ</label>
+                                    <InputText class="form-control" @bind-Value="model.Address.PostalCode" />
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label">Město</label>
+                                    <InputText class="form-control" @bind-Value="model.Address.Town" />
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary"
+                                    @onclick="BackToProfile" disabled="@isLoading">
+                                Zrušit
+                            </button>
+
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                    <span>Ukládám…</span>
+                                }
+                                else
+                                {
+                                    <span>Uložit změny</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
+    private UpdateAccountModel model = new();
+    private bool isLoading;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserAsync();
+    }
+
+    private async Task LoadUserAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            var appUser = await ApplicationUsersSelfService.GetProfileAsync();
+            model = appUser.ToUpdateModel();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            BackToProfile();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnUpdateValidSubmit()
+    {
+        isLoading = true;
+
+        try
+        {
+            await ApplicationUsersSelfService.UpdateAccountAsync(model);
+            MessageService.ShowSuccess("Profil byl úspěšně upraven.");
+            BackToProfile();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void BackToProfile()
+    {
+        Nav.NavigateTo("/profile");
+    }
 }

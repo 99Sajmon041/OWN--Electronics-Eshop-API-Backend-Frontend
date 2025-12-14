@@ -1,8 +1,8 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Products.CreateAdminProduct;
-using ElectronicsEshop.Blazor.Models.Products.GetAdminProducts;
+using ElectronicsEshop.Blazor.Models.Products.Admin.CreateAdminProduct;
+using ElectronicsEshop.Blazor.Models.Products.Admin.GetAdminProducts;
+using ElectronicsEshop.Blazor.Models.Products.Admin.UpdateAdminProduct;
 using ElectronicsEshop.Blazor.Models.Products.Shared;
-using ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.WebUtilities;
@@ -14,7 +14,7 @@ namespace ElectronicsEshop.Blazor.Services.Products;
 
 public sealed class ProductAdminService(HttpClient httpClient) : IProductAdminService
 {
-    public async Task<PagedResult<ProductModel>> GetAllAsync(ProductAdminRequest request, CancellationToken ct = default)
+    public async Task<PagedResult<ProductModel>> GetAllAsync(ProductRequest request, CancellationToken ct = default)
     {
         var query = new Dictionary<string, string?>
         {

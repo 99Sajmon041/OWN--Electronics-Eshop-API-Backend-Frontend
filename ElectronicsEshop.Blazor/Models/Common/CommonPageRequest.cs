@@ -8,4 +8,5 @@ public class CommonPageRequest
     public int PageSize { get; set; } = 20;
     public string? Role { get; set; }
     public OrderStatus? OrderStatus { get; set; }
+    public string? Email { get; set; }
 }

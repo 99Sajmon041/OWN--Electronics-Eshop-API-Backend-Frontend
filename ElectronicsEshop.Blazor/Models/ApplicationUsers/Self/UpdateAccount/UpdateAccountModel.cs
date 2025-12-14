@@ -4,7 +4,7 @@ using ElectronicsEshop.Blazor.Validators;
 
 namespace ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.UpdateAccount;
 
-public sealed class UpdateAccountModel
+public sealed class UpdateAccountModel : IHasAddress, IValidatableObject
 {
     [Required(ErrorMessage = "Jméno je povinný údaj.")]
     [StringLength(20, MinimumLength = 2, ErrorMessage = "Jméno musí být v rozmezí 2 - 20 znaků.")]
@@ -26,4 +26,11 @@ public sealed class UpdateAccountModel
 
     [Required(ErrorMessage = "Adresa je povinný údaj.")]
     public AddressModel Address { get; set; } = new();
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+        results.AddRange(this.ValidateAddress());
+        return results;
+    }
 }

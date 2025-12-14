@@ -1,7 +1,8 @@
 ﻿@page "/profile"
-@using ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.UpdatePassword
 
-@inject IApplicationUsersSelf ApplicationUserServiceSelf
+@attribute [Authorize]
+
+@inject IApplicationUsersService ApplicationUserService
 @inject MessageService MessageService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
@@ -237,7 +238,7 @@
 
         try
         {
-            model = await ApplicationUserServiceSelf.GetProfileAsync();
+            model = await ApplicationUserService.GetProfileAsync();
         }
         catch (Exception ex)
         {
@@ -298,7 +299,7 @@
 
         try
         {
-            var result = await ApplicationUserServiceSelf.UpdatePasswordAsync(passModel, CancellationToken.None);
+            var result = await ApplicationUserService.UpdatePasswordAsync(passModel, CancellationToken.None);
 
             if (!result.Success)
             {
@@ -375,7 +376,7 @@
 
         try
         {
-            var result = await ApplicationUserServiceSelf.DeactivateAccountAsync(deactivateModel);
+            var result = await ApplicationUserService.DeactivateAccountAsync(deactivateModel);
 
             if (!result.Success)
             {

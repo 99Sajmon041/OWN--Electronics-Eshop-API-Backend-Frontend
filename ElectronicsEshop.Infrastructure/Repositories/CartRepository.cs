@@ -20,15 +20,16 @@ public sealed class CartRepository(AppDbContext db) : ICartRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<(IReadOnlyList<Cart>, int)> GetAllCartsForAdminAsync(string? userId, int page, int pageSize, CancellationToken ct)
+    public async Task<(IReadOnlyList<Cart>, int)> GetAllCartsForAdminAsync(string? email, int page, int pageSize, CancellationToken ct)
     {
         var query = db.Carts
             .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Product)
             .Include(c => c.ApplicationUser)
             .AsNoTracking();
 
-        if (!string.IsNullOrEmpty(userId))
-            query = query.Where(c => c.ApplicationUserId == userId);
+        if (!string.IsNullOrEmpty(email))
+            query = query.Where(c => c.ApplicationUser.Email!.Contains(email.Trim().ToLower()));
 
         var cartsCount = await query.CountAsync(ct);
 
@@ -43,9 +44,9 @@ public sealed class CartRepository(AppDbContext db) : ICartRepository
     public async Task<Cart?> GetCartForCurrentUserAsync(string userId, CancellationToken ct)
     {
         return await db.Carts
-            .AsNoTracking()
             .Include(c => c.ApplicationUser)
             .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Product)
             .FirstOrDefaultAsync(c => c.ApplicationUserId == userId, ct);
     }
 }

@@ -8,7 +8,6 @@ using ElectronicsEshop.Application.Products.Mapping;
 using ElectronicsEshop.Infrastructure.Email;
 using ElectronicsEshop.Infrastructure.Extensions;
 using ElectronicsEshop.Infrastructure.Seeders;
-using FluentValidation.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);

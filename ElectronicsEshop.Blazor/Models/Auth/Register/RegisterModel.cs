@@ -1,9 +1,10 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
+using ElectronicsEshop.Blazor.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace ElectronicsEshop.Blazor.Models.Auth.Register;
 
-public sealed class RegisterModel
+public sealed class RegisterModel : IHasAddress, IValidatableObject
 {
     [Required(ErrorMessage = "Jméno je povinný údaj.")]
     [MinLength(2, ErrorMessage = "Jméno musí mít alespoň 2 znaky.")]
@@ -33,4 +34,11 @@ public sealed class RegisterModel
 
     [Required(ErrorMessage = "Adresa je povinný údaj.")]
     public AddressModel Address { get; set; } = new();
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+        results.AddRange(this.ValidateAddress());
+        return results;
+    }
 }

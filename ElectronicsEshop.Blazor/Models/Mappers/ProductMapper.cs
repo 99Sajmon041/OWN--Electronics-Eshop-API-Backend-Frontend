@@ -1,11 +1,11 @@
-﻿using ElectronicsEshop.Blazor.Models.Products.Shared;
-using ElectronicsEshop.Blazor.Models.Products.UpdateAdminProduct;
+﻿using ElectronicsEshop.Blazor.Models.Products.Admin.UpdateAdminProduct;
+using ElectronicsEshop.Blazor.Models.Products.Shared;
 
 namespace ElectronicsEshop.Blazor.Models.Mappers;
 
 public static class ProductMapper
 {
-    public static UpdateProductModel ToUpdatemodel(this ProductModel source)
+    public static UpdateProductModel ToUpdateModel(this ProductModel source)
     {
         ArgumentNullException.ThrowIfNull(source);
 

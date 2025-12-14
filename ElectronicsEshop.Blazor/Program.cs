@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using ElectronicsEshop.Blazor;
 using ElectronicsEshop.Blazor.Services.ApplicationUsers;
 using ElectronicsEshop.Blazor.Services.Auth;
+using ElectronicsEshop.Blazor.Services.Carts;
 using ElectronicsEshop.Blazor.Services.Categories;
 using ElectronicsEshop.Blazor.Services.Orders;
 using ElectronicsEshop.Blazor.Services.Products;
@@ -26,7 +27,9 @@ builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<IOrderAdminService, OrderAdminService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IApplicationUsersSelf, ApplicationUsersSelf>();
+builder.Services.AddScoped<IApplicationUsersAdminService, ApplicationUsersAdminService>();
+builder.Services.AddScoped<ICartsAdminService, CartsAdminService>();
+builder.Services.AddScoped<ICartsService, CartsService>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {

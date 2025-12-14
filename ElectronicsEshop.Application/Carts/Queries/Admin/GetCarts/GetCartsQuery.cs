@@ -7,6 +7,6 @@ namespace ElectronicsEshop.Application.Carts.Queries.Admin.GetCarts;
 public sealed class GetCartsQuery : IRequest<PagedResult<CartDetailDto>>
 {
     public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 20;
-    public string? UserId { get; set; }
+    public int PageSize { get; init; } = 5;
+    public string? Email { get; set; }
 }

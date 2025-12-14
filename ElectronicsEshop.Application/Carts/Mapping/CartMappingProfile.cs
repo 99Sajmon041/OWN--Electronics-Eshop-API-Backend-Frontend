@@ -17,6 +17,7 @@ public sealed class CartMappingProfile : Profile
             .ForMember(c => c.UserId, opt => opt.MapFrom(ce => ce.ApplicationUserId))
             .ForMember(c => c.UserEmail, opt => opt.MapFrom(ce => ce.ApplicationUser.Email))
             .ForMember(c => c.TotalQuantity, opt => opt.MapFrom(ce => ce.CartItems.Sum(x => x.Quantity)))
-            .ForMember(c => c.TotalPrice, opt => opt.MapFrom(ce => ce.CartItems.Sum(x => x.Quantity * x.UnitPrice)));
+            .ForMember(c => c.TotalPrice, opt => opt.MapFrom(ce => ce.CartItems.Sum(x => x.Quantity * x.UnitPrice)))
+            .ForMember(c => c.Items, opt => opt.MapFrom(ce => ce.CartItems)); // tento řádek mi chyběl, ted už ok ?
     }
 }

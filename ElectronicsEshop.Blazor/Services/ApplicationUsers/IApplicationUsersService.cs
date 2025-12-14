@@ -1,13 +1,14 @@
-﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.Admin.CreateUser;
+﻿using ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.DeactivateAccount;
+using ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.UpdateAccount;
+using ElectronicsEshop.Blazor.Models.ApplicationUsers.Self.UpdatePassword;
 using ElectronicsEshop.Blazor.Models.Common;
 
 namespace ElectronicsEshop.Blazor.Services.ApplicationUsers;
 
 public interface IApplicationUsersService
 {
-    Task<PagedResult<ApplicationUserModel>> GetAllAsync(CommonPageRequest request, CancellationToken ct = default);
-    Task<ApplicationUserModel> GetByIdAsync(string id, CancellationToken ct = default);
-    Task DeleteAsync(string id, CancellationToken ct = default);
-    Task CreateUserAsync(CreateUserModel model, CancellationToken ct = default);
-    Task UpdateUserRoleAsync(string userId, string roleName, CancellationToken ct = default);
+    Task<ApplicationUserModel> GetProfileAsync(CancellationToken ct = default);
+    Task<RequestResult> UpdatePasswordAsync(UpdatePasswordModel model, CancellationToken ct = default);
+    Task<RequestResult> DeactivateAccountAsync(DeactivateAccountModel model, CancellationToken ct = default);
+    Task UpdateAccountAsync(UpdateAccountModel model, CancellationToken ct = default);
 }

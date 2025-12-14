@@ -1,6 +1,6 @@
 ﻿using ElectronicsEshop.Blazor.Models.Common;
-using ElectronicsEshop.Blazor.Models.Orders.GetAdminOrder;
-using ElectronicsEshop.Blazor.Models.Orders.GetAdminOrders;
+using ElectronicsEshop.Blazor.Models.Orders.Admin.GetAdminOrder;
+using ElectronicsEshop.Blazor.Models.Orders.Admin.GetAdminOrders;
 using ElectronicsEshop.Blazor.Utils;
 using ElectronicsEshop.Domain.Enums;
 using Microsoft.AspNetCore.WebUtilities;
@@ -10,7 +10,7 @@ namespace ElectronicsEshop.Blazor.Services.Orders;
 
 public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminService
 {
-    public async  Task<PagedResult<OrderAdminListItemModel>> GetAllAsync(OrdersAdminRequest request, CancellationToken ct = default)
+    public async  Task<PagedResult<OrderListItemModel>> GetAllAsync(OrdersRequest request, CancellationToken ct = default)
     {
         var query = new Dictionary<string, string?>
         {
@@ -39,12 +39,12 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
         }
 
 
-        var data = await response.Content.ReadFromJsonAsync<PagedResult<OrderAdminListItemModel>>(ct) 
+        var data = await response.Content.ReadFromJsonAsync<PagedResult<OrderListItemModel>>(ct) 
             ?? throw new ApplicationException("Nepodařilo se načíst objednávky.");
 
         if (!data.Items.Any())
         {
-            return data ?? new PagedResult<OrderAdminListItemModel>
+            return data ?? new PagedResult<OrderListItemModel>
             {
                 Items = [],
                 TotalCount = 0,
@@ -72,7 +72,7 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
         }
     }
 
-    public async Task<OrderAdminModel> GetAsync(int orderId, CancellationToken ct = default)
+    public async Task<OrderModel> GetAsync(int orderId, CancellationToken ct = default)
     {
         var response = await httpClient.GetAsync($"api/admin/orders/{orderId}", ct);
 
@@ -82,7 +82,7 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
             throw new ApplicationException(message);
         }
 
-        var data = await response.Content.ReadFromJsonAsync<OrderAdminModel>(ct);
+        var data = await response.Content.ReadFromJsonAsync<OrderModel>(ct);
 
         return data ?? throw new ApplicationException("Nepodařilo se získat objednávku.");
     }

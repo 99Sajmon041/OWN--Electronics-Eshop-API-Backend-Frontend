@@ -1,0 +1,304 @@
+﻿@page "/admin/carts"
+
+@attribute [Authorize(Roles = nameof(UserRoles.Admin))]
+
+@inject MessageService MessageService
+@inject ICartsAdminService CartsAdminService
+@inject HttpClient Http
+
+<PageTitle>Admin – Košíky</PageTitle>
+
+<div class="container-fluid">
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="mb-0">Košíky uživatelů</h3>
+            <div class="text-muted small">Přehled aktuálních košíků (Pouze ke čtení)</div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <label class="form-label">Email uživatele</label>
+
+            <div class="d-flex align-items-start gap-2 flex-wrap">
+                <div style="max-width: 420px; width: 100%;">
+                    <input class="form-control"
+                           placeholder="např. pepa@seznam.cz"
+                           value="@request.Email"
+                           @onchange="OnFilteredByEmailAsync" />
+                </div>
+
+                <button class="btn btn-outline-secondary"
+                        style="margin-top: 0.125rem;"
+                        disabled="@isLoading"
+                        @onclick="ClearFilterAsync">
+                    Vymazat filtr
+                </button>
+
+                <button class="btn btn-primary"
+                        style="margin-top: 0.125rem;"
+                        disabled="@isLoading"
+                        @onclick="ReloadAsync">
+                    Obnovit
+                </button>
+
+                <div class="ms-auto">
+                    <span class="badge text-bg-secondary">
+                        Celkem košíků: @model.TotalCount
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-text mt-1">
+                Nech prázdné pro zobrazení všech košíků.
+            </div>
+        </div>
+    </div>
+
+
+    @if (isLoading)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body d-flex align-items-center gap-2">
+                <div class="spinner-border" role="status" aria-hidden="true"></div>
+                <span>Načítám košíky…</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (model.Items is null || model.Items.Count == 0)
+        {
+            <div class="alert alert-info shadow-sm">
+                Nenalezeny žádné košíky pro zadaný filtr.
+            </div>
+        }
+        else
+        {
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 40%;">Uživatel</th>
+                                    <th class="text-center" style="width: 10%;">Položky</th>
+                                    <th class="text-center" style="width: 10%;">Ks</th>
+                                    <th class="text-end" style="width: 20%;">Celkem</th>
+                                    <th class="text-end" style="width: 20%;">Akce</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var cart in model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">@cart.UserEmail</div>
+                                            <div class="text-muted small">@cart.UserId</div>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <span class="badge text-bg-secondary">
+                                                @(cart.Items?.Count ?? 0)
+                                            </span>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <span class="badge text-bg-info">
+                                                @cart.TotalQuantity
+                                            </span>
+                                        </td>
+
+                                        <td class="text-end fw-semibold">
+                                            @cart.TotalPrice.ToString("N2") Kč
+                                        </td>
+
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-primary"
+                                                    @onclick="() => ToggleCart(cart.UserId)">
+                                                @(expandedUserId == cart.UserId ? "Skrýt položky" : "Zobrazit položky")
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    @if (expandedUserId == cart.UserId)
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="bg-body-tertiary">
+                                                @if (cart.Items is null || cart.Items.Count == 0)
+                                                {
+                                                    <div class="p-3 text-muted">
+                                                        Košík je prázdný.
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="p-3">
+
+                                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                                            <div class="fw-semibold">Položky v košíku</div>
+                                                            <div class="text-muted small">
+                                                                @(cart.Items.Count) položek • @cart.TotalQuantity ks • @cart.TotalPrice.ToString("N2") Kč
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-striped align-middle mb-0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 52%;">Produkt</th>
+                                                                        <th class="text-center" style="width: 12%;">Ks</th>
+                                                                        <th class="text-end" style="width: 18%;">Cena/ks</th>
+                                                                        <th class="text-end" style="width: 18%;">Mezisoučet</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (var item in cart.Items)
+                                                                    {
+                                                                        <tr>
+                                                                            <td>
+                                                                                <div class="d-flex align-items-center gap-2">
+                                                                                    <img src="@Http.GetImageUrl(item.ImageUrl)"
+                                                                                         alt="@item.ProductName"
+                                                                                         style="width:40px;height:40px;object-fit:cover;border-radius:.5rem;" />
+                                                                                    <div>
+                                                                                        <div class="fw-semibold">@item.ProductName</div>
+                                                                                        <div class="text-muted small">ID: @item.ProductId</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </td>
+
+                                                                            <td class="text-center">
+                                                                                <span class="badge text-bg-secondary">@item.Quantity</span>
+                                                                            </td>
+
+                                                                            <td class="text-end">
+                                                                                @item.UnitPrice.ToString("N2") Kč
+                                                                            </td>
+
+                                                                            <td class="text-end fw-semibold">
+                                                                                @item.Total.ToString("N2") Kč
+                                                                            </td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <div class="text-muted small">
+                        Strana <strong>@request.Page</strong> z <strong>@totalPages</strong>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary"
+                                disabled="@(!canGoPrevious || isLoading)"
+                                @onclick="PreviousPage">
+                            Předchozí
+                        </button>
+
+                        <button class="btn btn-outline-secondary"
+                                disabled="@(!canGoNext || isLoading)"
+                                @onclick="NextPage">
+                            Další
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    PagedResult<CartModel> model = new();
+    CommonPageRequest request = new() { PageSize = 5 };
+
+    bool isLoading = true;
+    string? expandedUserId = null;
+
+    private int totalPages => Math.Max(1, (int)Math.Ceiling((double)model.TotalCount / Math.Max(1, model.PageSize)));
+    private bool canGoPrevious => request.Page > 1;
+    private bool canGoNext => request.Page < totalPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCartsAsync();
+    }
+
+    private async Task LoadCartsAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            request.PageSize = 5;
+            model = await CartsAdminService.GetAllAsync(request);
+            expandedUserId = null;
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ToggleCart(string userId)
+    {
+        expandedUserId = expandedUserId == userId ? null : userId;
+    }
+
+    private async Task OnFilteredByEmailAsync(ChangeEventArgs e)
+    {
+        request.Email = e.Value?.ToString();
+        request.Page = 1;
+        await LoadCartsAsync();
+    }
+
+    private async Task ClearFilterAsync()
+    {
+        request.Email = null;
+        request.Page = 1;
+        await LoadCartsAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        await LoadCartsAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (!canGoPrevious)
+            return;
+
+        request.Page--;
+        await LoadCartsAsync();
+    }
+
+    private async Task NextPage()
+    {
+        if (!canGoNext)
+            return;
+
+        request.Page++;
+        await LoadCartsAsync();
+    }
+}

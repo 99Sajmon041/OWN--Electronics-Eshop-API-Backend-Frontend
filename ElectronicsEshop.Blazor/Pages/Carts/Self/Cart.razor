@@ -1,0 +1,247 @@
+﻿@page "/cart"
+
+@inject ICartsService CartService
+@inject MessageService MessageService
+@inject NavigationManager Nav
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Košík</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h3 class="mb-0">Košík</h3>
+            <div class="text-muted small">Zkontroluj položky před odesláním objednávky</div>
+        </div>
+        <button class="btn btn-outline-secondary"
+                disabled="@isLoading"
+                @onclick="ReloadAsync">
+            Obnovit
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body d-flex align-items-center gap-2">
+                <div class="spinner-border" role="status" aria-hidden="true"></div>
+                <span>Načítám košík…</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (model.Items is null || model.Items.Count == 0)
+        {
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="fw-semibold">Košík je prázdný</div>
+                            <div class="text-muted small">Přidej si produkty do košíku a vrať se sem.</div>
+                        </div>
+                        <button class="btn btn-primary" @onclick="GoToProductsOrHome">
+                            Pokračovat v nákupu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                <div class="col-12 col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <div class="fw-semibold">Položky</div>
+                            <span class="badge text-bg-secondary">
+                                @(model.Items.Count) položek • @model.TotalQuantity ks
+                            </span>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="width: 55%;">Produkt</th>
+                                            <th class="text-center" style="width: 10%;">Ks</th>
+                                            <th class="text-end" style="width: 15%;">Cena/ks</th>
+                                            <th class="text-end" style="width: 15%;">Mezisoučet</th>
+                                            <th class="text-end" style="width: 5%;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in model.Items)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <img src="@Http.GetImageUrl(item.ImageUrl)"
+                                                             alt="@item.ProductName"
+                                                             style="width:56px;height:56px;object-fit:cover;border-radius:.75rem;" />
+                                                        <div>
+                                                            <div class="fw-semibold">@item.ProductName</div>
+                                                            <div class="text-muted small">Produkt ID: @item.ProductId</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td class="text-center">
+                                                    <span class="badge text-bg-secondary">@item.Quantity</span>
+                                                </td>
+
+                                                <td class="text-end">
+                                                    @item.UnitPrice.ToString("N2") Kč
+                                                </td>
+
+                                                <td class="text-end fw-semibold">
+                                                    @item.Total.ToString("N2") Kč
+                                                </td>
+
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            title="Odebrat položku" disabled="@isLoading"
+                                                            @onclick="() => RemoveItemAsync(item.Id, item.ProductName)">
+                                                        ✕
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-between flex-wrap gap-2">
+                            <button class="btn btn-outline-danger"
+                                    disabled="@isLoading"
+                                    @onclick="() => ClearCartAsync(model.Items.Count)">
+                                Vyprázdnit košík
+                            </button>
+
+                            <button class="btn btn-outline-secondary"
+                                    disabled="@isLoading"
+                                    @onclick="GoToProductsOrHome">
+                                Pokračovat v nákupu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <div class="fw-semibold">Souhrn</div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Položky (ks)</span>
+                                <span class="fw-semibold">@model.TotalQuantity</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Počet položek</span>
+                                <span class="fw-semibold">@(model.Items.Count)</span>
+                            </div>
+
+                            <hr />
+
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Celkem</span>
+                                <span class="fs-5 fw-bold">@model.TotalPrice.ToString("N2") Kč</span>
+                            </div>
+
+                            <div class="text-muted small mt-2">
+                                Cena se počítá z aktuálního obsahu košíku.
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button class="btn btn-success w-100"
+                                    disabled="@isLoading"
+                                    @onclick="SubmitCartAsync">
+                                Odeslat objednávku
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private CartModel model = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCartAsync();
+    }
+
+    private async Task LoadCartAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            model = await CartService.GetCartForCurrentUserAsync();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+            GoToProductsOrHome();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ReloadAsync() => await LoadCartAsync();
+
+    private void GoToProductsOrHome() => Nav.NavigateTo("/");
+
+    private async Task RemoveItemAsync(int cartItemId, string productName)
+    {
+        var ok = await JS.ConfirmWarning($"Opravdu chcete odstranit z košíku položku: {productName} ?");
+        if (!ok) return;
+
+        try
+        {
+            await CartService.DeleteItemAsync(cartItemId, productName);
+            MessageService.ShowSuccess($"Položka: {productName} byla odstraněna.");
+            await LoadCartAsync();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private async Task ClearCartAsync(int itemsCount)
+    {
+        var ok = await JS.ConfirmWarning($"Opravdu chcete z košíku vše odstranit (Celkem: {itemsCount} položek) ?");
+        if (!ok) return;
+
+        try
+        {
+            await CartService.DeleteAllItemSAsync(itemsCount);
+            MessageService.ShowSuccess($"Košík byl vyprázdněn (celkem: {itemsCount} položek)");
+            await LoadCartAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+    }
+
+    private Task SubmitCartAsync()
+    {
+        MessageService.ShowError("Submit zatím není napojené.");
+        return Task.CompletedTask;
+    }
+}

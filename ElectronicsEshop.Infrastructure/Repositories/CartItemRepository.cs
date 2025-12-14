@@ -11,7 +11,7 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
     {
         return await db.CartItems
             .AsNoTracking()
-            .AnyAsync(ci => ci.ProductId == productId);
+            .AnyAsync(ci => ci.ProductId == productId, cancellationToken);
     }
 
     public async Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct)

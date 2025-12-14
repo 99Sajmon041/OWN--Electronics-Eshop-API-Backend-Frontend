@@ -58,9 +58,7 @@ public sealed class AddCartItemCommandHandler
         {
             var cartItem = new CartItem
             {
-                Product = product,
                 ProductId = product.Id,
-                Cart = cart,
                 CartId = cart.Id,
                 Quantity = request.Quantity,
                 UnitPrice = product.Price,
