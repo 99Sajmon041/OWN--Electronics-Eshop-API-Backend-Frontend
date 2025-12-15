@@ -52,8 +52,8 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             query = query.Where(o => o.Id == orderId);
 
         if (!string.IsNullOrWhiteSpace(userId))
-            query = query.Where(o => o.ApplicationUser.Id == userId);
-        
+            query = query.Where(o => o.ApplicationUserId == userId);
+
         if (from is not null)
         {
             var fromDt = from.Value.ToDateTime(TimeOnly.MinValue);
@@ -70,7 +70,7 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             query = query.Where(o => o.OrderStatus == status.Value);
 
         if (!string.IsNullOrWhiteSpace(customerEmail))
-            query = query.Where(o => o.ApplicationUser.Email!.Contains(customerEmail));
+            query = query.Where(o => o.ApplicationUser.Email!.Contains(customerEmail.Trim()));
 
         var ordersCount = await query.CountAsync(ct);
 
@@ -94,13 +94,16 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id, ct);
     }
 
-    public async Task UpdateOrderStatusAsync(Order order, OrderStatus orderStatus, CancellationToken ct)
+    public Task UpdateOrderStatusAsync(int orderId, OrderStatus status, CancellationToken ct)
     {
-        order.OrderStatus = orderStatus;
-        db.Update(order);
+        ct.ThrowIfCancellationRequested();
 
-        await db.SaveChangesAsync(ct);
-    }   
+        var stub = new Order { Id = orderId };
+        db.Orders.Attach(stub);
+        stub.OrderStatus = status;
+        db.Entry(stub).Property(x => x.OrderStatus).IsModified = true;
+        return Task.CompletedTask;
+    }
 
     public async Task<Order?> GetByIdAsync(int id, CancellationToken ct)
     {
@@ -109,10 +112,9 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id, ct);
     }
 
-    public async Task CreateAsync(Order order, CancellationToken ct)
+    public  Task CreateAsync(Order order, CancellationToken ct)
     {
-        await db.Orders.AddAsync(order, ct);
-        await db.SaveChangesAsync(ct);
+        return db.Orders.AddAsync(order, ct).AsTask();
     }
 
     public async Task<int> GetOrdersCountForUserAsync(string userId, CancellationToken ct)

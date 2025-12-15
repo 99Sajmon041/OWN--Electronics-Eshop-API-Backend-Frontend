@@ -8,7 +8,8 @@ namespace ElectronicsEshop.Application.Products.Commands.UpdateProductsStockQty;
 
 public sealed class UpdateProductsStockQtyCommandHandler(
     IProductRepository productRepository,
-    ILogger<UpdateProductsStockQtyCommandHandler> logger) : IRequestHandler<UpdateProductsStockQtyCommand>
+    ILogger<UpdateProductsStockQtyCommandHandler> logger,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductsStockQtyCommand>
 {
     public async Task Handle(UpdateProductsStockQtyCommand request, CancellationToken cancellationToken)
     {
@@ -25,6 +26,7 @@ public sealed class UpdateProductsStockQtyCommandHandler(
         }
 
         await productRepository.AddStockQtyAsync(product, request.StockQty, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Produkt {ProductName} s ID {ProductId} byl doskladněn o {Amount} ks. Aktuálně skladem: {StockQty}",
             product.Name, product.Id, request.StockQty, product.StockQty);

@@ -7,17 +7,15 @@ namespace ElectronicsEshop.Infrastructure.Repositories;
 
 public sealed class CartRepository(AppDbContext db) : ICartRepository
 {
-    public async Task CreateAsync(string userId, CancellationToken cancellationToken)
+    public Task CreateAsync(string userId, CancellationToken ct)
     {
         var entity = new Cart
         {
             ApplicationUserId = userId,
-            UpdatedAt = DateTime.UtcNow,
-            CartItems = new List<CartItem>()
+            UpdatedAt = DateTime.UtcNow
         };
 
-        await db.Carts.AddAsync(entity, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        return db.Carts.AddAsync(entity, ct).AsTask();
     }
 
     public async Task<(IReadOnlyList<Cart>, int)> GetAllCartsForAdminAsync(string? email, int page, int pageSize, CancellationToken ct)
@@ -28,8 +26,10 @@ public sealed class CartRepository(AppDbContext db) : ICartRepository
             .Include(c => c.ApplicationUser)
             .AsNoTracking();
 
-        if (!string.IsNullOrEmpty(email))
-            query = query.Where(c => c.ApplicationUser.Email!.Contains(email.Trim().ToLower()));
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            query = query.Where(c => c.ApplicationUser.Email != null && c.ApplicationUser.Email.Contains(email.Trim()));
+        }
 
         var cartsCount = await query.CountAsync(ct);
 

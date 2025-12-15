@@ -10,7 +10,6 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
     public async Task<int> CreatePaymentAsync(Payment payment, CancellationToken ct)
     {
         await db.Payments.AddAsync(payment, ct);
-        await db.SaveChangesAsync(ct);
         return payment.Id;
     }
 
@@ -22,8 +21,6 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
 
         paymentRecord.OrderId = orderId;
         paymentRecord.UpdatedAt = updatedAt;
-
-        await db.SaveChangesAsync(ct);
     }
 
     private async Task<Payment?> FindPaymentByIdAsync(int paymentId, CancellationToken ct)
@@ -39,17 +36,17 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
             .Include(p => p.Order)
             .AsQueryable();
 
-        if (!!string.IsNullOrEmpty(userId))
+        if (!string.IsNullOrEmpty(userId))
             query = query.Where(p => p.UserId == userId);
 
         if (orderId is not null)
             query = query.Where(p => p.OrderId == orderId);
 
         if(from is not null)
-            query = query.Where(p => p.CreatedAt >= from);
+            query = query.Where(p => p.CreatedAt >= from.Value);
 
         if (to is not null)
-            query = query.Where(p => p.CreatedAt <= to);
+            query = query.Where(p => p.CreatedAt <= to.Value);
 
         var itemsCount = await query.CountAsync(ct);
 

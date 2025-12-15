@@ -8,7 +8,8 @@ namespace ElectronicsEshop.Application.Products.Commands.UpdateProductDiscount;
 
 public sealed class UpdateProductDiscountCommandHandler(
     IProductRepository productRepository,
-    ILogger<UpdateProductDiscountCommandHandler> logger) : IRequestHandler<UpdateProductDiscountCommand>
+    ILogger<UpdateProductDiscountCommandHandler> logger,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductDiscountCommand>
 {
     public async Task Handle(UpdateProductDiscountCommand request, CancellationToken cancellationToken)
     {
@@ -25,6 +26,7 @@ public sealed class UpdateProductDiscountCommandHandler(
         }
 
         await productRepository.UpdateDiscountAsync(product, request.DiscountPercentage, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Sleva produktu {ProductName} (Id: {ProductId}) byla úspěšně aktualizována na {DiscountPercentage}%.",
             product.Name, product.Id, request.DiscountPercentage);

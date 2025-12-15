@@ -11,7 +11,9 @@ public sealed class DeleteCartItemCommandHandler
     (ILogger<DeleteCartItemCommandHandler> logger,
     ICartItemRepository cartItemRepository,
     ICartRepository cartRepository,
-    IUserContext userContext) : IRequestHandler<DeleteCartItemCommand>
+    IUserContext userContext,
+    IProductRepository productRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteCartItemCommand>
 {
     public async Task Handle(DeleteCartItemCommand request, CancellationToken cancellationToken)
     {
@@ -33,14 +35,16 @@ public sealed class DeleteCartItemCommandHandler
 
         var cartItem = await cartItemRepository.GetByIdAsync(request.Id, cancellationToken);
 
-        if (cartItem is null)
+        if (cartItem is null || cartItem.CartId != cart.Id)
         {
-            logger.LogWarning("Položka nemůže být odstraněna, protože neexistuje.");
+            logger.LogWarning("Položka nemůže být odstraněna, protože neexistuje, nebo nepatří uživateli.");
             return;
         }
 
+        await productRepository.AddStockQtyAsync(cartItem.Product, cartItem.Quantity, cancellationToken);
         await cartItemRepository.DeleteForCurrentUserAsync(cartItem, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         logger.LogInformation("Z košíku byl odstraněn produkt s názvem: {ProductName}.", cartItem.Product.Name);
     }
-
 }

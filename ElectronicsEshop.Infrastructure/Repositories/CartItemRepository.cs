@@ -31,7 +31,6 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
     public async Task AddAsync(CartItem cartItem, CancellationToken ct)
     {
         await db.AddAsync(cartItem, ct);
-        await db.SaveChangesAsync(ct);
     }
 
     public async Task<CartItem?> GetForUserAndProductAsync(string userId, int productId, CancellationToken ct)
@@ -39,19 +38,17 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
         return await db.CartItems.FirstOrDefaultAsync(ci => ci.Cart.ApplicationUserId == userId && ci.ProductId == productId, ct);
     }
 
-    public async Task UpdateQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct)
+    public Task UpdateQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct)
     {
         cartItem.Quantity += quantity;
         db.CartItems.Update(cartItem);
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
     public async Task DeleteAllForCurrentUserAsync(string id, CancellationToken ct)
     {
         var items = await db.CartItems.Where(ci => ci.Cart.ApplicationUserId == id).ToListAsync(cancellationToken: ct);
         db.CartItems.RemoveRange(items);
-
-        await db.SaveChangesAsync(ct);
     }
 
     public async Task<CartItem?> GetByIdAsync(int id, CancellationToken ct)
@@ -61,9 +58,9 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
             .FirstOrDefaultAsync(ci => ci.Id == id, ct);
     }
 
-    public async Task DeleteForCurrentUserAsync(CartItem cartItem, CancellationToken ct)
+    public Task DeleteForCurrentUserAsync(CartItem cartItem, CancellationToken ct)
     {
         db.CartItems.Remove(cartItem);
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 }

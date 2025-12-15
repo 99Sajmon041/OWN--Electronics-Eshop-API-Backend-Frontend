@@ -11,9 +11,10 @@ public sealed class CreateProductCommandHandler(
     ILogger<CreateProductCommandHandler> logger,
     IProductRepository productRepository,
     ICategoryRepository categoryRepository,
-    IMapper mapper) : IRequestHandler<CreateProductCommand, int>
+    IMapper mapper,
+    IUnitOfWork unitOfWork) : IRequestHandler<CreateProductCommand>
 {
-    public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Začínám vytvářet produkt {ProductName} s kódem {ProductCode} v kategorii {CategoryId}.",
             request.Data.Name, request.Data.ProductCode, request.Data.CategoryId);
@@ -33,10 +34,10 @@ public sealed class CreateProductCommandHandler(
         }
 
         var product = mapper.Map<Product>(request.Data);
-        int productId = await productRepository.AddAsync(product, cancellationToken);
+        await productRepository.AddAsync(product, cancellationToken);
 
-        logger.LogInformation("Produkt {ProductId} - {ProductName} byl úspěšně zařazen.", productId, request.Data.Name);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return productId;
+        logger.LogInformation("Produkt {ProductName} byl úspěšně zařazen.", request.Data.Name);
     }
 }

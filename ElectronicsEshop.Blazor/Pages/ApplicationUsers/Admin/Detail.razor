@@ -162,7 +162,7 @@ else
 
         try
         {
-            await ApplicationUsersService.DeleteAsync(Id);
+            await ApplicationUsersService.DeactivateAsync(Id);
             MessageService.ShowSuccess("Uživatel byl úspěšně smazán.");
             BackToList();
         }

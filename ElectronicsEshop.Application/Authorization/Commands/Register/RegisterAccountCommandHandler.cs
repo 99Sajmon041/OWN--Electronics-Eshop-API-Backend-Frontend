@@ -12,7 +12,8 @@ namespace ElectronicsEshop.Application.Authorization.Commands.Register;
 public sealed class RegisterAccountCommandHandler(UserManager<ApplicationUser> userManager,
     ILogger<RegisterAccountCommandHandler> logger,
     ICartRepository cartRepository,
-    IMapper mapper) : IRequestHandler<RegisterAccountCommand>
+    IMapper mapper,
+    IUnitOfWork unitOfWork) : IRequestHandler<RegisterAccountCommand>
 {
     public async Task Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
@@ -40,6 +41,7 @@ public sealed class RegisterAccountCommandHandler(UserManager<ApplicationUser> u
         }
 
         await cartRepository.CreateAsync(user.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Uživatel: {FullName} byl vytvořen", user.FullName);
     }

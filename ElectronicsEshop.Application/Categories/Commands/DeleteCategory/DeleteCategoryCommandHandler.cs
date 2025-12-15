@@ -11,7 +11,8 @@ public sealed class DeleteCategoryCommandHandler(
     ICategoryRepository categoryRepository,
     IProductRepository productRepository,
     IOrderItemRepository orderItemRepository,
-    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteCategoryCommand>
+    ICartItemRepository cartItemRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteCategoryCommand>
 {
     public async Task Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -48,6 +49,7 @@ public sealed class DeleteCategoryCommandHandler(
         }
 
         await categoryRepository.DeleteAsync(request.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Kategorie s ID: {CategoryId} a názvem: {CategoryName} byla smazána.", request.Id, category.Name);
     }

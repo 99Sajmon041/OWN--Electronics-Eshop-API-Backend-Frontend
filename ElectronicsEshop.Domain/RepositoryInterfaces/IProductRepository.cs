@@ -8,7 +8,7 @@ public interface IProductRepository
         int page, int pageSize, string? sort, bool asc,string? q, int? categoryId, bool? isActive,
         decimal? priceMin, decimal? priceMax, int? stockMin, int? stockMax, CancellationToken ct = default);
     Task<Product?> GetByIdWithCategoryAsync(int id, CancellationToken ct = default);
-    Task<int> AddAsync(Product product, CancellationToken ct = default);
+    Task AddAsync(Product product, CancellationToken ct = default);
     Task UpdateAsync(Product product, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);
     Task<bool> ExistsByProductCodeAsync(string productCode, CancellationToken ct);

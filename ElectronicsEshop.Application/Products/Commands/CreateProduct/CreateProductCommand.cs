@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ElectronicsEshop.Application.Products.Commands.CreateProduct;
 
-public sealed class CreateProductCommand : IRequest<int>
+public sealed class CreateProductCommand : IRequest
 {
     public required ProductUpsertDto Data { get; set; }
 }

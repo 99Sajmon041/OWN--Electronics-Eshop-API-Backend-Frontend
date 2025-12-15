@@ -7,21 +7,27 @@
     </aside>
 
     <main class="app-main">
-        @if (MessageService.Current is not null)
-        {
-            var css = MessageService.Current.Type switch
-            {
-                MessageType.Success => "alert-success",
-                MessageType.Warning => "alert-warning",
-                MessageType.Error => "alert-danger",
-                _ => "alert-info"
-            };
 
-            <div class="alert @css d-flex justify-content-between align-items-center" role="alert">
-                <span>@MessageService.Current.Text</span>
-                <button type="button" class="btn-close" @onclick="ClearMessage"></button>
+        <div class="px-4 pt-3">
+            <div style="min-height: 64px;">
+                @if (MessageService.Current is not null)
+                {
+                    var css = MessageService.Current.Type switch
+                    {
+                        MessageType.Success => "alert-success",
+                        MessageType.Warning => "alert-warning",
+                        MessageType.Error => "alert-danger",
+                        _ => "alert-info"
+                    };
+
+                    <div class="alert @css d-flex justify-content-between align-items-center mb-0 py-2"
+                         role="alert">
+                        <span>@MessageService.Current.Text</span>
+                        <button type="button" class="btn-close" @onclick="ClearMessage"></button>
+                    </div>
+                }
             </div>
-        }
+        </div>
 
         <article class="content px-4">
             @Body
@@ -29,8 +35,7 @@
     </main>
 </div>
 
-
-@code{
+@code {
     protected override void OnInitialized()
     {
         MessageService.OnChange += StateHasChanged;

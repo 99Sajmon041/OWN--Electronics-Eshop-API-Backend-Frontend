@@ -11,7 +11,8 @@ public sealed class UpdateProductCommandHandler(
     IMapper mapper,
     ILogger<UpdateProductCommandHandler> logger,
     IProductRepository productRepository,
-    ICategoryRepository categoryRepository) : IRequestHandler<UpdateProductCommand>
+    ICategoryRepository categoryRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductCommand>
 {
     public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
@@ -51,6 +52,7 @@ public sealed class UpdateProductCommandHandler(
         entity.ImageUrl = originalImageUrl;
 
         await productRepository.UpdateAsync(entity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Produkt {ProductId}/{ProductCode} byl úspěšně upraven: {ProductName}.", entity.Id, entity.ProductCode, entity.Name);
     }

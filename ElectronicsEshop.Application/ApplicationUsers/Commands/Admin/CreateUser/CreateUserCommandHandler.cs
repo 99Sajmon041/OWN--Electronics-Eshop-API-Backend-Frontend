@@ -11,7 +11,8 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.CreateUse
 public sealed class CreateUserCommandHandler(UserManager<ApplicationUser> userManager,
     ILogger<CreateUserCommandHandler> logger,
     ICartRepository cartRepository,
-    IMapper mapper) : IRequestHandler<CreateUserCommand, string>
+    IMapper mapper,
+    IUnitOfWork unitOfWork) : IRequestHandler<CreateUserCommand, string>
 {
     public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
@@ -39,6 +40,7 @@ public sealed class CreateUserCommandHandler(UserManager<ApplicationUser> userMa
         }
 
         await cartRepository.CreateAsync(user.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation( "Uživatel {UserId} ({Email}) byl úspěšně vytvořen s rolí {Role}.", user.Id, user.Email, request.Role);
 

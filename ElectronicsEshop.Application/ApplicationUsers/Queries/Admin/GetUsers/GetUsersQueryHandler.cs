@@ -26,6 +26,15 @@ public sealed class GetUsersQueryHandler(UserManager<ApplicationUser> userManage
             query = query.Where(u => ids.Contains(u.Id));
         }
 
+        if(!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var email = request.Email.Trim().ToUpper();
+
+            query = query.Where(u =>
+                u.NormalizedEmail != null &&
+                u.NormalizedEmail.Contains(email));
+        }
+
         query = request.Order == SortOrder.Desc
             ? query.OrderByDescending(u => u.LastName)
             : query.OrderBy(u => u.LastName);

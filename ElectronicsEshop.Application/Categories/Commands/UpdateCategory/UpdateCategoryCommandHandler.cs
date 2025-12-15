@@ -8,7 +8,8 @@ using Microsoft.Extensions.Logging;
 
 public sealed class UpdateCategoryCommandHandler(
     ICategoryRepository categoryRepository,
-    ILogger<UpdateCategoryCommandHandler> logger) : IRequestHandler<UpdateCategoryCommand>
+    ILogger<UpdateCategoryCommandHandler> logger,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateCategoryCommand>
 {
     public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -39,6 +40,7 @@ public sealed class UpdateCategoryCommandHandler(
 
         category.Name = request.Name;
         await categoryRepository.UpdateAsync(category, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Kategorie s ID: {CategoryId} byla změněna na nový název: {CategoryName}.", category.Id, category.Name);
     }

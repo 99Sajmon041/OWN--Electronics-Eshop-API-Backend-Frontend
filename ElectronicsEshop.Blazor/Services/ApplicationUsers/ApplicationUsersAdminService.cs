@@ -24,13 +24,13 @@ public sealed class ApplicationUsersAdminService(HttpClient httpClient) : IAppli
         return data;
     }
 
-    public async Task DeleteAsync(string id, CancellationToken ct = default)
+    public async Task DeactivateAsync(string id, CancellationToken ct = default)
     {
         var response = await httpClient.DeleteAsync($"api/admin/users/{id}", ct);
 
         if(!response.IsSuccessStatusCode)
         {
-            var message = await response.ReadProblemMessageAsync("Nepodařilo se smazat uživatele.");
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se deaktivovat uživatele.");
             throw new InvalidOperationException(message);
         }
     }
@@ -52,7 +52,8 @@ public sealed class ApplicationUsersAdminService(HttpClient httpClient) : IAppli
         {
             ["page"] = request.Page.ToString(),
             ["pageSize"] = request.PageSize.ToString(),
-            ["role"] = request.Role ?? ""
+            ["role"] = request.Role ?? string.Empty,
+            ["email"] = request.Email ?? string.Empty
         };
 
         var filtered = query
@@ -89,6 +90,17 @@ public sealed class ApplicationUsersAdminService(HttpClient httpClient) : IAppli
         if(!response.IsSuccessStatusCode)
         {
             var message = await response.ReadProblemMessageAsync("Nepodařilo se aktualizovat roli uživatele.");
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    public async Task ActivateAsync(string id, CancellationToken ct = default)
+    {
+        var response = await httpClient.PatchAsync($"api/admin/users/{id}/activate", null, ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se aktivovat uživatele.");
             throw new InvalidOperationException(message);
         }
     }

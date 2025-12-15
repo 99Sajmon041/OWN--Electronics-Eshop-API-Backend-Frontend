@@ -8,7 +8,8 @@ namespace ElectronicsEshop.Application.Products.Commands.UpdateProductImage;
 
 public sealed class UpdateProductImageCommandHandler(
     ILogger<UpdateProductImageCommandHandler> logger,
-    IProductRepository productRepository) : IRequestHandler<UpdateProductImageCommand, string>
+    IProductRepository productRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateProductImageCommand, string>
 {
     public async Task<string> Handle(UpdateProductImageCommand request, CancellationToken cancellationToken)
     {
@@ -28,6 +29,7 @@ public sealed class UpdateProductImageCommandHandler(
         product.ImageUrl = request.ImageUrl;
 
         await productRepository.UpdateAsync(product, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Obrázek produktu {ProductId} byl aktualizován.", product.Id);
 

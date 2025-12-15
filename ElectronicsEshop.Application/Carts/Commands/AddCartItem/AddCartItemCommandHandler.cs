@@ -12,7 +12,8 @@ public sealed class AddCartItemCommandHandler
     ICartRepository cartRepository,
     ICartItemRepository cartItemRepository,
     IProductRepository productRepository,
-    IUserContext userContext) : IRequestHandler<AddCartItemCommand>
+    IUserContext userContext,
+    IUnitOfWork unitOfWork) : IRequestHandler<AddCartItemCommand>
 {
     public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
     {
@@ -73,6 +74,7 @@ public sealed class AddCartItemCommandHandler
         }
 
         await productRepository.AddStockQtyAsync(product, request.Quantity * -1, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Do košíku uživatele s e-mailem {UserEmail} bylo přidáno {Quantity} kusů položky: {ProductName}.", 
             user.Email,

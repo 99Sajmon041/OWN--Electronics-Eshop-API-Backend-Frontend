@@ -68,27 +68,24 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
             .FirstOrDefaultAsync(p => p.Id == id, ct);
     }
 
-    public async Task<int> AddAsync(Product product, CancellationToken ct = default)
+    public Task AddAsync(Product product, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
+
         db.Products.Add(product);
-        await db.SaveChangesAsync(ct);
-        return product.Id;
+        return Task.CompletedTask;
     }
 
-    public async Task UpdateAsync(Product product, CancellationToken ct = default)
+    public Task UpdateAsync(Product product, CancellationToken ct = default)
     {
         db.Products.Update(product);
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    public Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var entity = await db.Products.FindAsync(new object?[] { id }, ct);
-        if (entity is null)
-            return;
-
-        db.Products.Remove(entity);
-        await db.SaveChangesAsync(ct);
+        db.Products.Remove(new Product { Id = id });
+        return Task.CompletedTask;
     }
 
     public async Task<bool> ExistsByProductCodeAsync(string productCode, CancellationToken ct)
@@ -107,22 +104,22 @@ public sealed class ProductRepository(AppDbContext db) : IProductRepository
         return await db.Products.FirstOrDefaultAsync(p => p.Id == id, ct);
     }
 
-    public async Task UpdateDiscountAsync(Product product, decimal value, CancellationToken ct)
+    public Task UpdateDiscountAsync(Product product, decimal value, CancellationToken ct)
     {
         product.DiscountPercentage = value;
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
-    public async Task AddStockQtyAsync(Product product, int amount, CancellationToken ct)
+    public Task AddStockQtyAsync(Product product, int amount, CancellationToken ct)
     {
         product.StockQty += amount;
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
-    public async Task SetStateOfProductAsync(Product product, bool isActive, CancellationToken ct)
+    public  Task SetStateOfProductAsync(Product product, bool isActive, CancellationToken ct)
     {
         product.IsActive = isActive;
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
     public async Task<bool> ExistsWithCategoryAsync(int categoryId, CancellationToken ct)

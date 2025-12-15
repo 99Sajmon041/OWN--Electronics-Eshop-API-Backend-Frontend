@@ -53,6 +53,7 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Create([FromForm] CreateProductRequest request, CancellationToken ct)
     {
         var imageUrl = await imageService.SaveImageAsync(request.ImageFile, ct);
@@ -63,8 +64,8 @@ public class ProductsController(IMediator mediator, IProductImageService imageSe
             Data = request.Data 
         };
 
-        var id = await mediator.Send(command, ct);
-        return CreatedAtAction(nameof(Get), new { id }, null);
+        await mediator.Send(command, ct);
+        return NoContent();
     }
 
     [Authorize(Policy = PolicyNames.AdminOnly)]

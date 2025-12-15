@@ -75,6 +75,7 @@ public static class ServiceCollectionExtensions
         services.AddAuthorizationBuilder()
             .AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole(nameof(UserRoles.Admin)));
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IDefaultDataSeeder, DefaultDataSeeder>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();

@@ -9,7 +9,8 @@ namespace ElectronicsEshop.Application.Categories.Commands.CreateCategory;
 
 public sealed class CreateCategoryCommandHandler(ILogger<CreateCategoryCommandHandler> logger,
     ICategoryRepository categoryRepository,
-    IMapper mapper) : IRequestHandler<CreateCategoryCommand, int>
+    IMapper mapper,
+    IUnitOfWork unitOfWork) : IRequestHandler<CreateCategoryCommand, int>
 {
     public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -24,6 +25,8 @@ public sealed class CreateCategoryCommandHandler(ILogger<CreateCategoryCommandHa
         var entity = mapper.Map<Category>(request);
 
         var id = await categoryRepository.CreateAsync(entity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         logger.LogInformation("Admin vytvořil kategorii s ID: {CategoryId} a názvem: {CategoryName}", id, entity.Name);
 
         return id;

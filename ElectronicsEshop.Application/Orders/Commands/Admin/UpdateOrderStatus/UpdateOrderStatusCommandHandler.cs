@@ -8,7 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace ElectronicsEshop.Application.Orders.Commands.Admin.UpdateOrderStatus;
 
 public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCommandHandler> logger,
-    IOrderRepository orderRepository) : IRequestHandler<UpdateOrderStatusCommand>
+    IOrderRepository orderRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<UpdateOrderStatusCommand>
 {
     public async Task Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
@@ -29,9 +30,10 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
 
         var newState = request.NewStatus;
 
-        await orderRepository.UpdateOrderStatusAsync(order, newState, cancellationToken);
+        await orderRepository.UpdateOrderStatusAsync(order.Id, newState, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        switch(newState)
+        switch (newState)
         {
             case OrderStatus.New :
                 orderState = "Nová";

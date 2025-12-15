@@ -11,7 +11,8 @@ public sealed class DeleteCartItemsCommandHandler
     (ILogger<DeleteCartItemsCommandHandler> logger,
     ICartItemRepository cartItemRepository,
     ICartRepository cartRepository,
-    IUserContext userContext) : IRequestHandler<DeleteCartItemsCommand>
+    IUserContext userContext,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteCartItemsCommand>
 {
     public async Task Handle(DeleteCartItemsCommand request, CancellationToken cancellationToken)
     {
@@ -38,6 +39,7 @@ public sealed class DeleteCartItemsCommandHandler
         }
 
         await cartItemRepository.DeleteAllForCurrentUserAsync(user.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Z košíku uživatele s e-mailem {UserEmail} byly odstraněny všechny položky (počet: {CartItemsCount}).",

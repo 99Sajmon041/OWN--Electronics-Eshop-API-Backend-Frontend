@@ -37,30 +37,24 @@ public sealed class CategoryRepository(AppDbContext db) : ICategoryRepository
     public async Task<int> CreateAsync(Category category, CancellationToken ct)
     {
         await db.Categories.AddAsync(category, ct);
-        await db.SaveChangesAsync(ct);
-
         return category.Id;
     }
 
     public async Task<bool> ExistByNameAsync(string name, CancellationToken ct)
     {
-        return await db.Categories.AnyAsync(x => x.Name == name, ct);
+        return await db.Categories.AnyAsync(x => x.Name == name.Trim(), ct);
     }
 
-    public async Task DeleteAsync(int id, CancellationToken ct)
+    public Task DeleteAsync(int id, CancellationToken ct)
     {
-        var entity = await db.Categories.FirstOrDefaultAsync(c => c.Id == id, ct);
-        if (entity is null)
-            return;
-
-        db.Categories.Remove(entity);
-        await db.SaveChangesAsync(ct);
+        db.Categories.Remove(new Category { Id = id });
+        return Task.CompletedTask;
     }
 
-    public async Task UpdateAsync(Category category, CancellationToken ct)
+    public Task UpdateAsync(Category category, CancellationToken ct)
     {
         db.Categories.Update(category);
-        await db.SaveChangesAsync(ct);
+        return Task.CompletedTask;
     }
 
     public async Task<IReadOnlyList<Category>> GetAllAsync(CancellationToken ct)

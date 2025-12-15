@@ -10,7 +10,8 @@ public sealed class DeleteProductCommandHandler(
     ILogger<DeleteProductCommandHandler> logger,
     IProductRepository productRepository,
     IOrderItemRepository orderItemRepository,
-    ICartItemRepository cartItemRepository) : IRequestHandler<DeleteProductCommand, string>
+    ICartItemRepository cartItemRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteProductCommand, string>
 {
     public async Task<string> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
@@ -42,6 +43,8 @@ public sealed class DeleteProductCommandHandler(
         var imageUrl = product.ImageUrl;
 
         await productRepository.DeleteAsync(request.Id, cancellationToken);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Produkt {ProductId} ({ProductName}) byl odstraněn.", product.Id, product.Name);
 

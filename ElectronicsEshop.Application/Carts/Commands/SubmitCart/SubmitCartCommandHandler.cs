@@ -17,7 +17,8 @@ public sealed class SubmitCartCommandHandler(
     IOrderRepository orderRepository,
     IPaymentService paymentService,
     ICartItemRepository cartItemRepository,
-    UserManager<ApplicationUser> userManager) : IRequestHandler<SubmitCartCommand>
+    UserManager<ApplicationUser> userManager,
+    IUnitOfWork unitOfWork) : IRequestHandler<SubmitCartCommand>
 {
     public async Task Handle(SubmitCartCommand request, CancellationToken cancellationToken)
     {
@@ -85,6 +86,8 @@ public sealed class SubmitCartCommandHandler(
         await paymentService.AssignOrderAsync(paymentResult.PaymentId, order.Id, cancellationToken);
 
         await cartItemRepository.DeleteAllForCurrentUserAsync(user.Id, cancellationToken);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
             "Objednávka {OrderId} byla úspěšně vytvořena a zaplacena. Uživatelské ID: {UserId}, PaymentId: {PaymentId}",

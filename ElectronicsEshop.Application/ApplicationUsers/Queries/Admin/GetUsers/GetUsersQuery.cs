@@ -11,6 +11,7 @@ namespace ElectronicsEshop.Application.ApplicationUsers.Queries.Admin.GetUsers
         public int PageSize { get; init; } = 20;
         public string? Sort { get; init; }
         public string? Role { get; init; }
+        public string? Email { get; set; }
         public SortOrder Order { get; init; } = SortOrder.Asc;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.CreateUser;
 using ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.DeleteUser;
+using ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.ReActivateuser;
 using ElectronicsEshop.Application.ApplicationUsers.Commands.Admin.UpdateUserRole;
 using ElectronicsEshop.Application.ApplicationUsers.DTOs;
 using ElectronicsEshop.Application.ApplicationUsers.Queries.Admin.GetUser;
@@ -23,13 +24,14 @@ namespace ElectronicsEshop.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PagedResult<ApplicationUserDto>>> GetAll(
-            [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default, [FromQuery] string? role = null)
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default, [FromQuery] string? role = null, [FromQuery] string? email = null)
         {
             var result = await mediator.Send(new GetUsersQuery
             {
                 Page = page,
                 PageSize = pageSize,
-                Role = role
+                Role = role,
+                Email = email
             }, ct);
 
             return Ok(result);
@@ -84,6 +86,19 @@ namespace ElectronicsEshop.API.Controllers
         {
             command.Id = id;
             await mediator.Send(command, ct);
+            return NoContent();
+        }
+
+        [HttpPatch("{id}/activate")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> ActivateUser([FromRoute] string id, CancellationToken ct)
+        {
+            await mediator.Send(new ReActivateUserCommand(id), ct);
             return NoContent();
         }
     }
