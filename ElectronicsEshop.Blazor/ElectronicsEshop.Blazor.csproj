@@ -24,9 +24,4 @@
     <ProjectReference Include="..\ElectronicsEshop.Domain\ElectronicsEshop.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\Carts\Admin\" />
-    <Folder Include="Models\Carts\Self\" />
-  </ItemGroup>
-
 </Project>

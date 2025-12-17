@@ -2,6 +2,7 @@
 
 @inject HttpClient Http
 @inject IProductService ProductService
+@inject ICartsService CartsService
 @inject MessageService MessageService
 @inject NavigationManager Nav
 
@@ -88,11 +89,10 @@ else
                     </p>
 
                     <div class="mt-2 d-flex gap-2">
-                        <button class="btn btn-primary"
-                                disabled="@(model.StockQty <= 0)"
-                                @onclick="() => AddToCartAsync(model.Id)">
-                            Přidat do košíku
-                        </button>
+                        <AddToCartPicker Max="@model.StockQty"
+                                         Disabled="@isLoading"
+                                         CssClass="mt-3"
+                                         OnAdd="(qty) => AddToCartAsync(model.Id, model.Name, qty)" />
 
                         <button class="btn btn-secondary"
                                 @onclick="BackToList">
@@ -138,10 +138,25 @@ else
         }
     }
 
-    private async Task AddToCartAsync(int productId)
+    private async Task AddToCartAsync(int productId, string productName, int quantity)
     {
-        // TODO: napoj na CartService / API (POST /api/cart/items)
-        await Task.CompletedTask;
+        var model = new ChangeQtyCartModel
+        {
+            ProductId = productId,
+            Quantity = quantity
+        };
+
+        try
+        {
+            await CartsService.AddItemAsync(model, productName);
+
+            await LoadProductAsync();
+            MessageService.ShowSuccess($"Zboží {productName} bylo x{quantity} přidáno do košíku.");
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
     }
 
     private void BackToList()

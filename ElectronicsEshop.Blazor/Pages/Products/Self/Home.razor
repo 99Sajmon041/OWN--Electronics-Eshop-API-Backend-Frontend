@@ -128,32 +128,11 @@
                                 <AuthorizeView>
                                     <Authorized>
                                         <div class="d-flex align-items-center gap-2">
+                                            
+                                            <AddToCartPicker Max="@product.StockQty"
+                                            Disabled="@isLoading"
+                                            OnAdd="(qty) => AddToCartAsync(product.Id, product.Name, qty)"/>
 
-                                            <div class="input-group input-group-sm" style="width: 130px;">
-                                                <button class="btn btn-outline-secondary"
-                                                        type="button"
-                                                        disabled="@(isLoading || GetQty(product.Id) <= 1)"
-                                                        @onclick="() => DecreaseQty(product.Id)">
-                                                    −
-                                                </button>
-
-                                                <input class="form-control text-center"
-                                                       value="@GetQty(product.Id)"
-                                                       readonly />
-
-                                                <button class="btn btn-outline-secondary"
-                                                        type="button"
-                                                        disabled="@(isLoading || GetQty(product.Id) >= product.StockQty)"
-                                                        @onclick="() => IncreaseQty(product.Id, product.StockQty)">
-                                                    +
-                                                </button>
-                                            </div>
-
-                                            <button class="btn btn-warning btn-sm"
-                                                    disabled="@(isLoading || product.StockQty <= 0)"
-                                                    @onclick="@(() => AddToCartAsync(product.Id, product.Name))">
-                                                Přidat
-                                            </button>
                                         </div>
                                     </Authorized>
                                 </AuthorizeView>
@@ -196,7 +175,6 @@
     private Models.Products.Self.GetProducts.ProductRequest filter = new();
 
     private IDictionary<int, string> categories = new Dictionary<int, string>();
-    private readonly Dictionary<int, int> qtyByProductId = new();
     private PagedResult<ProductModel>? products;
     private bool isLoading;
 
@@ -295,11 +273,9 @@
         Nav.NavigateTo($"/products/detail/{productId}");
     }
 
-    private async Task AddToCartAsync(int productId, string productName)
+    private async Task AddToCartAsync(int productId, string productName, int quantity)
     {
-        var quantity = GetQty(productId);
-
-        var model = new AddToCartModel
+        var model = new ChangeQtyCartModel
         {
             ProductId = productId,
             Quantity = quantity
@@ -309,43 +285,12 @@
         {
             await CartsService.AddItemAsync(model, productName);
 
-            qtyByProductId.Clear();
-
             await LoadProductsAsync();
             MessageService.ShowSuccess($"Zboží {productName} bylo x{quantity} přidáno do košíku.");
         }
         catch (Exception ex)
         {
             MessageService.ShowError(ex.Message);
-        }
-    }
-
-    private int GetQty(int productId)
-    {
-        if(!qtyByProductId.TryGetValue(productId, out var qty))
-        {
-            qty = 1;
-            qtyByProductId[productId] = qty;
-        }
-
-        return qty;
-    }
-
-    private void DecreaseQty(int productId)
-    {
-        var qty = GetQty(productId);
-        if (qty > 1)
-        {
-            qtyByProductId[productId] = qty - 1;
-        }
-    }
-
-    private void IncreaseQty(int productId, int max)
-    {
-        var qty = GetQty(productId);
-        if(qty < max)
-        {
-            qtyByProductId[productId] = qty + 1;
         }
     }
 }

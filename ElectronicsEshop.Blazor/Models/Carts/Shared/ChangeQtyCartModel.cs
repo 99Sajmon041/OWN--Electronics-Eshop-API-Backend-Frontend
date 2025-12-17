@@ -2,7 +2,7 @@
 
 namespace ElectronicsEshop.Blazor.Models.Carts.Shared;
 
-public sealed class AddToCartModel
+public sealed class ChangeQtyCartModel
 {
     [Range(1, int.MaxValue, ErrorMessage = "Musíte zvolit produkt.")]
     public int ProductId { get; set; }

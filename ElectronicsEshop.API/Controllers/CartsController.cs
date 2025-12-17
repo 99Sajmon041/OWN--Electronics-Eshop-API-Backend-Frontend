@@ -1,6 +1,7 @@
 ﻿using ElectronicsEshop.Application.Carts.Commands.AddCartItem;
 using ElectronicsEshop.Application.Carts.Commands.DeleteCartItem;
 using ElectronicsEshop.Application.Carts.Commands.DeleteCartItems;
+using ElectronicsEshop.Application.Carts.Commands.RemoveCartItem;
 using ElectronicsEshop.Application.Carts.Commands.SubmitCart;
 using ElectronicsEshop.Application.Carts.DTOs;
 using ElectronicsEshop.Application.Carts.Queries.Self.GetCart;
@@ -24,13 +25,25 @@ namespace ElectronicsEshop.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("increase/item")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddItem([FromBody] AddCartItemCommand command, CancellationToken ct)
+        public async Task<IActionResult> AddItem([FromBody] AddQtyCartItemCommand command, CancellationToken ct)
+        {
+            await mediator.Send(command, ct);
+            return Ok();
+        }
+
+        [HttpPost("decrease/item")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RemoveItem([FromBody] RemoveQtyCartItemComman command, CancellationToken ct)
         {
             await mediator.Send(command, ct);
             return Ok();

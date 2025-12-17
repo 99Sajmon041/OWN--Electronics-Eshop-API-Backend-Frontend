@@ -43,14 +43,26 @@ public sealed class CartsService(HttpClient httpClient) : ICartsService
         }
     }
 
-    public async Task AddItemAsync(AddToCartModel model, string productName, CancellationToken ct = default)
+    public async Task AddItemAsync(ChangeQtyCartModel model, string productName, CancellationToken ct = default)
     {
-        var response = await httpClient.PostAsJsonAsync("api/cart", model, ct);
+        var response = await httpClient.PostAsJsonAsync("api/cart/increase/item", model, ct);
 
         if(!response.IsSuccessStatusCode)
         {
             var itemWord = model.Quantity == 1 ? "Položku" : "Položky";
             var message = await response.ReadProblemMessageAsync($"{itemWord} produktu: {productName} se nedaří přidat do košíku. Zkuste prosím později.");
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    public async Task RemoveItemAsync(ChangeQtyCartModel model, string productName, CancellationToken ct = default)
+    {
+        var response = await httpClient.PostAsJsonAsync("api/cart/decrease/item", model, ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var itemWord = model.Quantity == 1 ? "Položku" : "Položky";
+            var message = await response.ReadProblemMessageAsync($"{itemWord} produktu: {productName} se nedaří odebrat z košíku. Zkuste prosím později.");
             throw new InvalidOperationException(message);
         }
     }

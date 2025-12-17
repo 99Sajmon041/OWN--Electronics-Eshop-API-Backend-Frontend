@@ -10,7 +10,8 @@ public interface ICartItemRepository
     Task<CartItem?> GetByIdAsync(int id, CancellationToken ct);
     Task AddAsync(CartItem cartItem, CancellationToken ct);
     Task<CartItem?> GetForUserAndProductAsync(string userId, int productId, CancellationToken ct);
-    Task UpdateQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct);
+    Task IncreaseQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct);
+    Task DecreaseQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct);
     Task DeleteAllForCurrentUserAsync(string id, CancellationToken ct);
     Task DeleteForCurrentUserAsync(CartItem cartItem, CancellationToken ct);
 }

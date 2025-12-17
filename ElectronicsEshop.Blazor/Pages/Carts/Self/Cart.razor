@@ -89,7 +89,30 @@
                                                 </td>
 
                                                 <td class="text-center">
-                                                    <span class="badge text-bg-secondary">@item.Quantity</span>
+                                                    <div class="d-flex align-items-center justify-content-center gap-2">
+
+                                                        <button class="btn btn-sm btn-outline-secondary"
+                                                                type="button"
+                                                                title="Odebrat"
+                                                                disabled="@isBusy"
+                                                                @onclick="() => OnDecreaseAsync(item.ProductId, item.ProductName)">
+                                                            −
+                                                        </button>
+
+                                                        <span class="badge text-bg-secondary"
+                                                              style="min-width: 40px; text-align:center;">
+                                                            @item.Quantity
+                                                        </span>
+
+                                                        <button class="btn btn-sm btn-outline-secondary"
+                                                                type="button"
+                                                                title="Přidat"
+                                                                disabled="@isBusy"
+                                                                @onclick="() => OnIncreaseAsync(item.ProductId, item.ProductName)">
+                                                            +
+                                                        </button>
+
+                                                    </div>
                                                 </td>
 
                                                 <td class="text-end">
@@ -176,6 +199,7 @@
 @code {
     private CartModel model = new();
     private bool isLoading = true;
+    private bool isBusy;
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,5 +267,63 @@
     {
         MessageService.ShowError("Submit zatím není napojené.");
         return Task.CompletedTask;
+    }
+
+    private async Task OnIncreaseAsync(int productId, string productName)
+    {
+        if (isBusy)
+            return;
+
+        isBusy = true;
+
+        try
+        {
+            var addModel = new ChangeQtyCartModel
+                {
+                    ProductId = productId,
+                    Quantity = 1
+                };
+
+            await CartService.AddItemAsync(addModel, productName);
+            MessageService.ShowSuccess($"Množství produktu: {productName} bylo navýšeno o 1 kus.");
+            await LoadCartAsync();
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isBusy = false;   
+        }
+    }
+
+    private async Task OnDecreaseAsync(int productId, string productName)
+    {
+        if (isBusy)
+            return;
+
+        isBusy = true;
+
+        try
+        {
+            var addModel = new ChangeQtyCartModel
+            {
+                ProductId = productId,
+                Quantity = 1
+            };
+
+            await CartService.RemoveItemAsync(addModel, productName);
+            MessageService.ShowSuccess($"Množství produktu: {productName} bylo poníženo / odebráno.");
+            await LoadCartAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 }

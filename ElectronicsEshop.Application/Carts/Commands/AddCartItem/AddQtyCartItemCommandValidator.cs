@@ -2,9 +2,9 @@
 
 namespace ElectronicsEshop.Application.Carts.Commands.AddCartItem;
 
-public sealed class AddCartItemCommandValidator : AbstractValidator<AddCartItemCommand>
+public sealed class AddQtyCartItemCommandValidator : AbstractValidator<AddQtyCartItemCommand>
 {
-    public AddCartItemCommandValidator()
+    public AddQtyCartItemCommandValidator()
     {
         RuleFor(ci => ci.ProductId)
             .NotEmpty()

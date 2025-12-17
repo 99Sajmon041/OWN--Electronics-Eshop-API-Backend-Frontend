@@ -7,15 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace ElectronicsEshop.Application.Carts.Commands.AddCartItem;
 
-public sealed class AddCartItemCommandHandler
-    (ILogger<AddCartItemCommandHandler> logger,
+public sealed class AddCartItemCommandHandler(
+    ILogger<AddCartItemCommandHandler> logger,
     ICartRepository cartRepository,
     ICartItemRepository cartItemRepository,
     IProductRepository productRepository,
     IUserContext userContext,
-    IUnitOfWork unitOfWork) : IRequestHandler<AddCartItemCommand>
+    IUnitOfWork unitOfWork) : IRequestHandler<AddQtyCartItemCommand>
 {
-    public async Task Handle(AddCartItemCommand request, CancellationToken cancellationToken)
+    public async Task Handle(AddQtyCartItemCommand request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -46,8 +46,7 @@ public sealed class AddCartItemCommandHandler
             logger.LogWarning(
                 "Nelze přidat do košíku {Quantity} kusů zboží: {ProductName}, skladem je pouze {StockQuantity} položek.", request.Quantity, product.Name, stockQty);
 
-            throw new ForbiddenException(
-                $"Nelze přidat {request.Quantity} kusů do košíku – požadované množství není skladem.");
+            throw new ForbiddenException($"Nelze přidat {request.Quantity} kusů do košíku – požadované množství není skladem.");
         }
 
         var existingCartItem = await cartItemRepository.GetForUserAndProductAsync(
@@ -70,7 +69,7 @@ public sealed class AddCartItemCommandHandler
         }
         else
         {
-            await cartItemRepository.UpdateQuantityAsync(existingCartItem, request.Quantity, cancellationToken);
+            await cartItemRepository.IncreaseQuantityAsync(existingCartItem, request.Quantity, cancellationToken);
         }
 
         await productRepository.AddStockQtyAsync(product, request.Quantity * -1, cancellationToken);

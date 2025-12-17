@@ -38,9 +38,16 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
         return await db.CartItems.FirstOrDefaultAsync(ci => ci.Cart.ApplicationUserId == userId && ci.ProductId == productId, ct);
     }
 
-    public Task UpdateQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct)
+    public Task IncreaseQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct)
     {
         cartItem.Quantity += quantity;
+        db.CartItems.Update(cartItem);
+        return Task.CompletedTask;
+    }
+
+    public Task DecreaseQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct)
+    {
+        cartItem.Quantity -= quantity;
         db.CartItems.Update(cartItem);
         return Task.CompletedTask;
     }
