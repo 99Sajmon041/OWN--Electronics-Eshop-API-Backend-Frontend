@@ -8,6 +8,7 @@ using ElectronicsEshop.Blazor.Services.Orders;
 using ElectronicsEshop.Blazor.Services.Products;
 using ElectronicsEshop.Blazor.Services.Roles;
 using ElectronicsEshop.Blazor.UI.Message;
+using ElectronicsEshop.Blazor.UI.State;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -18,6 +19,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<CartState>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
@@ -31,12 +33,22 @@ builder.Services.AddScoped<IApplicationUsersAdminService, ApplicationUsersAdminS
 builder.Services.AddScoped<ICartsAdminService, CartsAdminService>();
 builder.Services.AddScoped<ICartsService, CartsService>();
 
-builder.Services.AddScoped(sp => new HttpClient
+builder.Services.AddScoped<TokenExpiryService>();
+builder.Services.AddScoped<ClientSessionService>();
+builder.Services.AddTransient<UnauthorizedHandler>();
+
+builder.Services.AddScoped(sp =>
 {
-    BaseAddress = new Uri("https://localhost:7259")
+    var handler = sp.GetRequiredService<UnauthorizedHandler>();
+    handler.InnerHandler = new HttpClientHandler();
+
+    return new HttpClient(handler)
+    {
+        BaseAddress = new Uri("https://localhost:7259")
+    };
 });
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
- 
+
 await builder.Build().RunAsync();

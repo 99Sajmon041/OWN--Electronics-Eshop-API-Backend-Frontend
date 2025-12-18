@@ -46,7 +46,7 @@
         <div class="col-md-6">
             <input class="form-control"
                    placeholder="Hledat produkt..."
-                   value="@filter.Q"
+                   value="@request.Q"
                    @oninput="OnSearchCahnged"
                    @onkeydown="OnCanceledFiltering" />
         </div>
@@ -146,24 +146,24 @@
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
 
-                <li class="page-item @(filter.Page <= 1 ? "disabled" : "")">
+                <li class="page-item @(request.Page <= 1 ? "disabled" : "")">
                     <button class="page-link" @onclick="PrevPageAsync">Předchozí</button>
                 </li>
 
                 @for (int i = 1; i <= GetTotalPages(); i++)
                 {
-                    <li class="page-item @(i == filter.Page ? "active" : "")">
+                    <li class="page-item @(i == request.Page ? "active" : "")">
                         <button class="page-link" @onclick="(() => GoToPageAsync(i))">@i</button>
                     </li>
                 }
 
-                <li class="page-item @(filter.Page >= GetTotalPages() ? "disabled" : "")">
+                <li class="page-item @(request.Page >= GetTotalPages() ? "disabled" : "")">
                     <button class="page-link" @onclick="NextPageAsync">Další</button>
                 </li>
             </ul>
 
             <p class="text-center text-muted">
-                Strana @filter.Page z @GetTotalPages()
+                Strana @request.Page z @GetTotalPages()
                 &nbsp;|&nbsp;
                 Celkem @products.TotalCount produktů
             </p>
@@ -172,7 +172,7 @@
 </div>
 
 @code {
-    private Models.Products.Self.GetProducts.ProductRequest filter = new();
+    private Models.Products.Self.GetProducts.ProductRequest request = new();
 
     private IDictionary<int, string> categories = new Dictionary<int, string>();
     private PagedResult<ProductModel>? products;
@@ -189,7 +189,7 @@
         isLoading = true;
         StateHasChanged();
 
-        products = await ProductService.GetAllAsync(filter);
+        products = await ProductService.GetAllAsync(request);
 
         isLoading = false;
         StateHasChanged();
@@ -197,20 +197,20 @@
 
     private string GetCategoryTabClass(int? categoryId)
     {
-        var isActive = filter.CategoryId == categoryId;
+        var isActive = request.CategoryId == categoryId;
         return $"nav-link {(isActive ? "active" : "")}";
     }
 
     private async Task OnCategorySelectedAsync(int? categoryId)
     {
-        filter.CategoryId = categoryId;
-        filter.Page = 1;
+        request.CategoryId = categoryId;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
     private async Task OnSearchCahnged(ChangeEventArgs e)
     {
-        filter.Q = e.Value?.ToString() ?? string.Empty;
+        request.Q = e.Value?.ToString() ?? string.Empty;
         await SearchAsync();
     }
 
@@ -218,14 +218,14 @@
     {
         if (e.Key == "Escape")
         {
-            filter.Q = string.Empty;
+            request.Q = string.Empty;
             _ = SearchAsync();
         }
     }
 
     private async Task SearchAsync()
     {
-        filter.Page = 1;
+        request.Page = 1;
         await LoadProductsAsync();
     }
 
@@ -239,9 +239,9 @@
 
     private async Task PrevPageAsync()
     {
-        if (filter.Page > 1)
+        if (request.Page > 1)
         {
-            filter.Page--;
+            request.Page--;
             await LoadProductsAsync();
         }
     }
@@ -250,9 +250,9 @@
     {
         var totalPages = GetTotalPages();
 
-        if (filter.Page < totalPages)
+        if (request.Page < totalPages)
         {
-            filter.Page++;
+            request.Page++;
             await LoadProductsAsync();
         }
     }
@@ -263,7 +263,7 @@
 
         if (page >= 1 && page <= totalPages)
         {
-            filter.Page = page;
+            request.Page = page;
             await LoadProductsAsync();
         }
     }

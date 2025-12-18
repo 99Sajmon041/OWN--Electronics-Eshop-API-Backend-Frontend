@@ -1,5 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 @inject MessageService MessageService
+@inject CartState CartState
+@inject ICartsService CartService
+@inject AuthenticationStateProvider AuthProvider
 
 <div class="app-layout">
     <aside class="app-sidebar">
@@ -7,7 +11,22 @@
     </aside>
 
     <main class="app-main">
-
+        <div style="min-height: 40px;" class="d-flex justify-content-end align-items-center px-4">
+            <AuthorizeView>
+                <Authorized>
+                    @if (CartState.ItemsCount > 0)
+                    {
+                        <a href="/cart"
+                           class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3"
+                           title="Košík">
+                            <span class="d-none d-sm-inline">Košík</span>
+                            <img src="icons/cart.svg" width="18" height="18" alt="cart_icon" />
+                            <span class="badge bg-primary rounded-pill">@CartState.ItemsCount</span>
+                        </a>
+                    }
+                </Authorized>
+            </AuthorizeView>
+        </div>
         <div class="px-4 pt-3">
             <div style="min-height: 64px;">
                 @if (MessageService.Current is not null)
@@ -36,14 +55,53 @@
 </div>
 
 @code {
+    private bool _cartLoaded;
+
     protected override void OnInitialized()
     {
         MessageService.OnChange += StateHasChanged;
+        CartState.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await RefreshCartCountIfAuthenticated();
+    }
+
+    private async Task RefreshCartCountIfAuthenticated()
+    {
+        if (_cartLoaded)
+            return;
+
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        if(auth.User.Identity?.IsAuthenticated != true)
+        {
+            CartState.Clear();
+            _cartLoaded = true;
+            return;
+        }
+
+        try
+        {
+            await CartService.SetCartStateAsync();
+        }
+        catch
+        {
+            CartState.Clear();
+        }
+        finally
+        {
+            _cartLoaded = true;
+        }
     }
 
     public void Dispose()
     {
         MessageService.OnChange -= StateHasChanged;
+        CartState.OnChange -= StateHasChanged;
     }
 
     private void ClearMessage() => MessageService.Clear();

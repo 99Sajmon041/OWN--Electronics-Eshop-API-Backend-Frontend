@@ -5,6 +5,9 @@ using ElectronicsEshop.Blazor.Models.Auth.Register;
 using ElectronicsEshop.Blazor.Models.Auth.ResetPassword;
 using ElectronicsEshop.Blazor.Models.Common;
 using ElectronicsEshop.Blazor.Models.Constants;
+using ElectronicsEshop.Blazor.Services.Carts;
+using ElectronicsEshop.Blazor.UI.Message;
+using ElectronicsEshop.Blazor.UI.State;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
@@ -12,7 +15,12 @@ using System.Net.Http.Json;
 
 namespace ElectronicsEshop.Blazor.Services.Auth
 {
-    public sealed class AuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthenticationStateProvider authStateProvider) : IAuthService
+    public sealed class AuthService(
+        HttpClient httpClient, 
+        ILocalStorageService localStorage,
+        AuthenticationStateProvider authStateProvider,
+        ICartsService cartsService,
+        MessageService messageService) : IAuthService
     {
         public async Task<RequestResult> LoginAsync(LoginModel model, CancellationToken ct = default)
         {
@@ -41,6 +49,15 @@ namespace ElectronicsEshop.Blazor.Services.Auth
                     await apiAuth.MarkUserAsAuthenticatedAsync();
                 }
 
+                try
+                {
+                    await cartsService.SetCartStateAsync(ct);
+                }
+                catch
+                {
+                    messageService.ShowError("Nepodařilo se načíst lištu s košíkem.");
+                }
+
                 return new RequestResult { Success = true };
             }
 
@@ -55,13 +72,18 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
         public async Task LogoutAsync(CancellationToken ct = default)
         {
-            await localStorage.RemoveItemAsync(TokenConstant.TokenStorageKey, ct);
-
-            httpClient.DefaultRequestHeaders.Authorization = null;
-
             if (authStateProvider is ApiAuthenticationStateProvider apiAuth)
             {
-                apiAuth.MarkUserAsLoggedOut();
+                try
+                {
+                    await cartsService.DeleteAllItemsAsync(ct: ct);
+                }
+                catch
+                {
+
+                }
+
+                await apiAuth.LogoutAsync();
             }
         }
 

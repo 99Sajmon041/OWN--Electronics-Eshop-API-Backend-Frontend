@@ -26,7 +26,8 @@
                     <input class="form-control"
                            placeholder="např. pepa@seznam.cz"
                            value="@request.Email"
-                           @onchange="OnFilteredByEmailAsync" />
+                           @oninput="OnFilteredByEmailAsync"
+                           @onkeydown="OnCanceledFiltering" />
                 </div>
 
                 <button class="btn btn-outline-secondary"
@@ -267,7 +268,18 @@
 
     private async Task OnFilteredByEmailAsync(ChangeEventArgs e)
     {
-        request.Email = e.Value?.ToString();
+        request.Email = e.Value?.ToString() ?? string.Empty;
+        request.Page = 1;
+        await LoadCartsAsync();
+    }
+
+    private async Task OnCanceledFiltering(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            request.Email = string.Empty;
+        }
+
         request.Page = 1;
         await LoadCartsAsync();
     }

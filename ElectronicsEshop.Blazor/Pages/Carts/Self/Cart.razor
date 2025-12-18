@@ -253,7 +253,7 @@
 
         try
         {
-            await CartService.DeleteAllItemSAsync(itemsCount);
+            await CartService.DeleteAllItemsAsync(itemsCount);
             MessageService.ShowSuccess($"Košík byl vyprázdněn (celkem: {itemsCount} položek)");
             await LoadCartAsync();
         }
