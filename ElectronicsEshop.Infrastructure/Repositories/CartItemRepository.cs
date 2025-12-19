@@ -70,4 +70,15 @@ public sealed class CartItemRepository(AppDbContext db) : ICartItemRepository
         db.CartItems.Remove(cartItem);
         return Task.CompletedTask;
     }
+
+    public async Task<int> GetCartItemsCountForCurrentUser(string userId, CancellationToken ct)
+    {
+        var sum = await db.CartItems
+            .AsNoTracking()
+            .Where(ci => ci.Cart.ApplicationUserId == userId)
+            .Select(ci => (int?)ci.Quantity)
+            .SumAsync(ct);
+
+        return sum ?? 0;
+    }
 }

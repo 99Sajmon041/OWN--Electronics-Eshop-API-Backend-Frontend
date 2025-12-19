@@ -5,6 +5,7 @@ using ElectronicsEshop.Application.Carts.Commands.RemoveCartItem;
 using ElectronicsEshop.Application.Carts.Commands.SubmitCart;
 using ElectronicsEshop.Application.Carts.DTOs;
 using ElectronicsEshop.Application.Carts.Queries.Self.GetCart;
+using ElectronicsEshop.Application.Carts.Queries.Self.GetCartItemsCount;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -82,6 +83,16 @@ namespace ElectronicsEshop.API.Controllers
         {
             await mediator.Send(new SubmitCartCommand(), ct);
             return NoContent();
+        }
+
+        [HttpGet("count")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<int>> GetItemsCount(CancellationToken ct)
+        {
+            var result = await mediator.Send(new GetCartItemsCountQuery(), ct);
+            return Ok(result);
         }
     }
 }

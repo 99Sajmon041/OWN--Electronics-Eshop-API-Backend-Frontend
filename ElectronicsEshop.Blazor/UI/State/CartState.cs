@@ -16,6 +16,17 @@ public sealed class CartState
         ItemsCount = count;
         OnChange?.Invoke();
     }
+    public void Add(int delta)
+    {
+        if (delta <= 0) return;
+        SetCount(ItemsCount + delta);
+    }
+
+    public void Subtract(int delta)
+    {
+        if (delta <= 0) return;
+        SetCount(ItemsCount - delta);
+    }
 
     public void Clear()
     {

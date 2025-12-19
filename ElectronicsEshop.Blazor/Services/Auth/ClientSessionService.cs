@@ -14,6 +14,8 @@ public sealed class ClientSessionService(
 
     public async Task ForceLogoutAsync(string message, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
+
         if (Interlocked.Exchange(ref handled, 1) == 1)
             return;
 

@@ -1,9 +1,8 @@
 ﻿using System.Net;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ElectronicsEshop.Blazor.Services.Auth;
 
-public sealed class UnauthorizedHandler(IServiceProvider services) : DelegatingHandler
+public sealed class UnauthorizedHandler(ClientSessionService clientSessionService) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
@@ -11,8 +10,7 @@ public sealed class UnauthorizedHandler(IServiceProvider services) : DelegatingH
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            var session = services.GetRequiredService<ClientSessionService>();
-            await session.ForceLogoutAsync("Přihlášení vypršelo. Přihlas se prosím znovu.", ct);
+            await clientSessionService.ForceLogoutAsync("Přihlášení vypršelo. Přihlas se prosím znovu.", ct);
         }
 
         return response;

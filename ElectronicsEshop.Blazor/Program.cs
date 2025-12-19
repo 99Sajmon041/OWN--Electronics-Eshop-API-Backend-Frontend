@@ -12,6 +12,8 @@ using ElectronicsEshop.Blazor.UI.State;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -37,16 +39,14 @@ builder.Services.AddScoped<TokenExpiryService>();
 builder.Services.AddScoped<ClientSessionService>();
 builder.Services.AddTransient<UnauthorizedHandler>();
 
-builder.Services.AddScoped(sp =>
+builder.Services.AddHttpClient("Api", client =>
 {
-    var handler = sp.GetRequiredService<UnauthorizedHandler>();
-    handler.InnerHandler = new HttpClientHandler();
+    client.BaseAddress = new Uri("https://localhost:7259");
+})
+.AddHttpMessageHandler<UnauthorizedHandler>();
 
-    return new HttpClient(handler)
-    {
-        BaseAddress = new Uri("https://localhost:7259")
-    };
-});
+builder.Services.AddScoped(sp =>
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();

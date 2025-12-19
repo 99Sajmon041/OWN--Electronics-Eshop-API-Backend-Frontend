@@ -4,49 +4,33 @@ namespace ElectronicsEshop.Blazor.Services.Auth;
 
 public sealed class TokenExpiryService
 {
-    private Timer? preExpiryTimer;
     private Timer? expiryTimer;
 
-    public void Schedule(JwtSecurityToken jwtToken, Func<Task> onPreExpiryAsync, Func<Task> onExpiredAsync, TimeSpan? preExpiryOffset = null)
+    public void Schedule(JwtSecurityToken jwtToken, Func<Task> onExpiredAsync)
     {
         Cancel();
 
-        string? expValue = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp)?.Value;
+        var expValue = jwtToken.Claims
+            .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp)
+            ?.Value;
 
         if (string.IsNullOrWhiteSpace(expValue))
             return;
 
-        if (!long.TryParse(expValue, out long expUnixSeconds))
+        if (!long.TryParse(expValue, out var expUnixSeconds))
             return;
 
-        DateTimeOffset expiresAtUtc = DateTimeOffset.FromUnixTimeSeconds(expUnixSeconds);
-        TimeSpan timeUntilExpiry = expiresAtUtc - DateTimeOffset.UtcNow;
+        var expiresAtUtc = DateTimeOffset.FromUnixTimeSeconds(expUnixSeconds);
+        var timeUntilExpiry = expiresAtUtc - DateTimeOffset.UtcNow;
 
         if (timeUntilExpiry <= TimeSpan.Zero)
         {
-            onExpiredAsync.Invoke();
+            _ = SafeInvokeAsync(onExpiredAsync);
             return;
         }
 
-        TimeSpan offset = preExpiryOffset ?? TimeSpan.FromSeconds(60);
-        TimeSpan timeUntilPreExpiry = timeUntilExpiry - offset;
-
-        if(timeUntilPreExpiry > TimeSpan.Zero)
-        {
-            preExpiryTimer = new Timer(
-                callback: async _ => await onPreExpiryAsync.Invoke(),
-                state: null,
-                dueTime: timeUntilPreExpiry,
-                period: Timeout.InfiniteTimeSpan
-            );
-        }
-        else
-        {
-            onPreExpiryAsync.Invoke();
-        }
-
         expiryTimer = new Timer(
-            callback: async _ => await onExpiredAsync.Invoke(),
+            _ => _ = SafeInvokeAsync(onExpiredAsync),
             state: null,
             dueTime: timeUntilExpiry,
             period: Timeout.InfiniteTimeSpan
@@ -55,10 +39,19 @@ public sealed class TokenExpiryService
 
     public void Cancel()
     {
-        preExpiryTimer?.Dispose();
-        preExpiryTimer = null;
-
         expiryTimer?.Dispose();
         expiryTimer = null;
+    }
+
+    private static async Task SafeInvokeAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+        }
     }
 }

@@ -126,7 +126,7 @@
                                                 <td class="text-end">
                                                     <button class="btn btn-sm btn-outline-danger"
                                                             title="Odebrat položku" disabled="@isLoading"
-                                                            @onclick="() => RemoveItemAsync(item.Id, item.ProductName)">
+                                                            @onclick="() => RemoveItemAsync(item.Id, item.Quantity, item.ProductName)">
                                                         ✕
                                                     </button>
                                                 </td>
@@ -229,14 +229,14 @@
 
     private void GoToProductsOrHome() => Nav.NavigateTo("/");
 
-    private async Task RemoveItemAsync(int cartItemId, string productName)
+    private async Task RemoveItemAsync(int cartItemId, int quantity, string productName)
     {
         var ok = await JS.ConfirmWarning($"Opravdu chcete odstranit z košíku položku: {productName} ?");
         if (!ok) return;
 
         try
         {
-            await CartService.DeleteItemAsync(cartItemId, productName);
+            await CartService.DeleteItemAsync(cartItemId, quantity, productName);
             MessageService.ShowSuccess($"Položka: {productName} byla odstraněna.");
             await LoadCartAsync();
         }

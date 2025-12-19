@@ -14,4 +14,5 @@ public interface ICartItemRepository
     Task DecreaseQuantityAsync(CartItem cartItem, int quantity, CancellationToken ct);
     Task DeleteAllForCurrentUserAsync(string id, CancellationToken ct);
     Task DeleteForCurrentUserAsync(CartItem cartItem, CancellationToken ct);
+    Task<int> GetCartItemsCountForCurrentUser(string userId, CancellationToken ct);
 }

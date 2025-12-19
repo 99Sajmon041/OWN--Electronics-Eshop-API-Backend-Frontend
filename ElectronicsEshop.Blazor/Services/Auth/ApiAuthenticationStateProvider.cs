@@ -1,6 +1,5 @@
 ﻿using Blazored.LocalStorage;
 using ElectronicsEshop.Blazor.Models.Constants;
-using ElectronicsEshop.Blazor.Services.Carts;
 using ElectronicsEshop.Blazor.UI.State;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,13 +12,10 @@ public sealed class ApiAuthenticationStateProvider(
     ILocalStorageService localStorage,
     HttpClient httpClient,
     TokenExpiryService tokenExpiry,
-    CartState cartState,
-    IServiceProvider services
-) : AuthenticationStateProvider
+    CartState cartState) : AuthenticationStateProvider
 {
-
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
-    private readonly AuthenticationState _anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+    private readonly AuthenticationState _anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -48,12 +44,9 @@ public sealed class ApiAuthenticationStateProvider(
             return _anonymous;
         }
 
-        httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var expValue = jwtToken.Claims
-            .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp)
-            ?.Value;
+        var expValue = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp)?.Value;
 
         if (expValue is not null && long.TryParse(expValue, out var expUnix))
         {
@@ -66,45 +59,18 @@ public sealed class ApiAuthenticationStateProvider(
                 return _anonymous;
             }
 
-            tokenExpiry.Schedule(
-                jwtToken: jwtToken,
-                onPreExpiryAsync: async () =>
-                {
-                    try
-                    {
-                        var cartsService = services.GetRequiredService<ICartsService>();
-                        await cartsService.DeleteAllItemsAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine(ex);
-                    }
-                },
-                onExpiredAsync: async () =>
-                {
-                    try
-                    {
-                        await LogoutAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine(ex);
-                    }
-                },
-                preExpiryOffset: TimeSpan.FromSeconds(60)
-            );
+            tokenExpiry.Schedule(jwtToken, onExpiredAsync: LogoutAsync);
         }
         else
         {
             tokenExpiry.Cancel();
         }
 
-        var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+        var identity = new ClaimsIdentity(jwtToken.Claims, authenticationType: "jwt");
         var user = new ClaimsPrincipal(identity);
 
         return new AuthenticationState(user);
     }
-
 
     public async Task MarkUserAsAuthenticatedAsync()
     {
@@ -119,6 +85,7 @@ public sealed class ApiAuthenticationStateProvider(
 
         await localStorage.RemoveItemAsync(TokenConstant.TokenStorageKey);
         httpClient.DefaultRequestHeaders.Authorization = null;
+
         MarkUserAsLoggedOut();
     }
 

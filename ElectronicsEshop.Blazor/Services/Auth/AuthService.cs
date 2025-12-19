@@ -7,7 +7,6 @@ using ElectronicsEshop.Blazor.Models.Common;
 using ElectronicsEshop.Blazor.Models.Constants;
 using ElectronicsEshop.Blazor.Services.Carts;
 using ElectronicsEshop.Blazor.UI.Message;
-using ElectronicsEshop.Blazor.UI.State;
 using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
@@ -41,8 +40,7 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
                 await localStorage.SetItemAsStringAsync(TokenConstant.TokenStorageKey, loginResponse.AccessToken, ct);
 
-                httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", loginResponse.AccessToken);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResponse.AccessToken);
 
                 if (authStateProvider is ApiAuthenticationStateProvider apiAuth)
                 {
@@ -51,11 +49,12 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
                 try
                 {
-                    await cartsService.SetCartStateAsync(ct);
+                    await cartsService.DeleteAllItemsAsync(ct: ct);
                 }
-                catch
+                catch(Exception ex)
                 {
-                    messageService.ShowError("Nepodařilo se načíst lištu s košíkem.");
+                    Console.WriteLine(ex);
+                    messageService.ShowError("Nepodařilo se správně načíst košík.");
                 }
 
                 return new RequestResult { Success = true };
@@ -78,9 +77,9 @@ namespace ElectronicsEshop.Blazor.Services.Auth
                 {
                     await cartsService.DeleteAllItemsAsync(ct: ct);
                 }
-                catch
+                catch(Exception ex)
                 {
-
+                    Console.WriteLine(ex);
                 }
 
                 await apiAuth.LogoutAsync();
