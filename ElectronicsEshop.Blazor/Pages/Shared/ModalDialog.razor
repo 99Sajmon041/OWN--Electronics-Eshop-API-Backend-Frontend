@@ -6,7 +6,10 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title">@Title</h5>
-                    <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancel"></button>
+                    @if (ShowActionButtons)
+                    {
+                        <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancel"></button>
+                    }
                 </div>
 
                 <div class="modal-body">
@@ -19,15 +22,17 @@
 
                     @ChildContent
                 </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="OnCancel" disabled="@IsBusy">
-                        @CancelText
-                    </button>
-                    <button class="btn btn-primary" @onclick="OnSave" disabled="@IsBusy">
-                        @SaveText
-                    </button>
-                </div>
+                @if (ShowActionButtons)
+                {
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="OnCancel" disabled="@IsBusy">
+                            @CancelText
+                        </button>
+                        <button class="btn btn-primary" @onclick="OnSave" disabled="@IsBusy">
+                            @SaveText
+                        </button>
+                    </div>
+                }
 
             </div>
         </div>
@@ -48,4 +53,6 @@
     [Parameter] public EventCallback OnSave { get; set; }
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public bool ShowActionButtons { get; set; } = true;
 }

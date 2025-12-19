@@ -11,5 +11,5 @@ public class Order
     public DateTime CreatedAt { get; set; }
     public DateTime? CanceledAt { get; set; }
     public OrderStatus OrderStatus { get; set; } = OrderStatus.New;
-    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<OrderItem> OrderItems { get; set; } = [];
 }

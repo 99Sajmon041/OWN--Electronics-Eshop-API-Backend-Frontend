@@ -7,10 +7,9 @@ namespace ElectronicsEshop.Infrastructure.Repositories;
 
 public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
 {
-    public async Task<int> CreatePaymentAsync(Payment payment, CancellationToken ct)
+    public async Task CreatePaymentAsync(Payment payment, CancellationToken ct)
     {
         await db.Payments.AddAsync(payment, ct);
-        return payment.Id;
     }
 
     public async Task UpdatePaymentAsync(int paymentId, int orderId, DateTime updatedAt, CancellationToken ct)
@@ -21,6 +20,7 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
 
         paymentRecord.OrderId = orderId;
         paymentRecord.UpdatedAt = updatedAt;
+        db.Update(paymentRecord);
     }
 
     private async Task<Payment?> FindPaymentByIdAsync(int paymentId, CancellationToken ct)

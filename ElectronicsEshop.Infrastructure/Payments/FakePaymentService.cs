@@ -9,7 +9,7 @@ public sealed class FakePaymentService(IPaymentRepository paymentRepository) : I
 {
     public async Task AssignOrderAsync(int paymentId, int orderId, CancellationToken ct)
     {
-        await paymentRepository.UpdatePaymentAsync(paymentId,orderId, DateTime.UtcNow, ct);
+        await paymentRepository.UpdatePaymentAsync(paymentId, orderId, DateTime.UtcNow, ct);
     }
 
     public async Task<PaymentResult> CreatePayment(string userId, decimal amount, CancellationToken ct)
@@ -24,12 +24,12 @@ public sealed class FakePaymentService(IPaymentRepository paymentRepository) : I
             CreatedAt = DateTime.UtcNow
         };
 
-        var paymentRecord = await paymentRepository.CreatePaymentAsync(payment, ct);
+        await paymentRepository.CreatePaymentAsync(payment, ct);
 
         return new PaymentResult
         {
             Success = true,
-            PaymentId = paymentRecord,
+            Payment = payment,
             Error = null
         };
     }

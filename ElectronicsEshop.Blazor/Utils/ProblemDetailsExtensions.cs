@@ -13,11 +13,13 @@ public static class ProblemDetailsExtensions
 
             if (!string.IsNullOrWhiteSpace(problem?.Detail))
                 return problem.Detail;
+
             if (!string.IsNullOrWhiteSpace(problem?.Title))
                 return problem.Title;
         }
-        catch
+        catch(Exception ex)
         {
+            Console.WriteLine(ex.Message);
         }
 
         return defaultMessage;

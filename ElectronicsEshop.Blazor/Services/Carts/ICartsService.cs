@@ -10,4 +10,5 @@ public interface ICartsService
     Task AddItemAsync(ChangeQtyCartModel model, string productName, CancellationToken ct = default);
     Task RemoveItemAsync(ChangeQtyCartModel model, string productName, CancellationToken ct = default);
     Task SyncCountAsync(CancellationToken ct = default);
+    Task SubmitOrderAsync(CancellationToken ct = default);
 }

@@ -74,6 +74,16 @@ namespace ElectronicsEshop.API.Controllers
             return NoContent();
         }
 
+        [HttpGet("count")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<int>> GetItemsCount(CancellationToken ct)
+        {
+            var result = await mediator.Send(new GetCartItemsCountQuery(), ct);
+            return Ok(result);
+        }
+
         [HttpPost("submit")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -83,16 +93,6 @@ namespace ElectronicsEshop.API.Controllers
         {
             await mediator.Send(new SubmitCartCommand(), ct);
             return NoContent();
-        }
-
-        [HttpGet("count")]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<int>> GetItemsCount(CancellationToken ct)
-        {
-            var result = await mediator.Send(new GetCartItemsCountQuery(), ct);
-            return Ok(result);
         }
     }
 }

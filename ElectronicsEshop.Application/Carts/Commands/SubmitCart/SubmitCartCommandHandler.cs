@@ -83,7 +83,9 @@ public sealed class SubmitCartCommandHandler(
 
         await orderRepository.CreateAsync(order, cancellationToken);
 
-        await paymentService.AssignOrderAsync(paymentResult.PaymentId, order.Id, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await paymentService.AssignOrderAsync(paymentResult.Payment!.Id, order.Id, cancellationToken);
 
         await cartItemRepository.DeleteAllForCurrentUserAsync(user.Id, cancellationToken);
 
@@ -93,6 +95,6 @@ public sealed class SubmitCartCommandHandler(
             "Objednávka {OrderId} byla úspěšně vytvořena a zaplacena. Uživatelské ID: {UserId}, PaymentId: {PaymentId}",
             order.Id,
             user.Id,
-            paymentResult.PaymentId);
+            paymentResult.Payment!.Id);
     }
 }

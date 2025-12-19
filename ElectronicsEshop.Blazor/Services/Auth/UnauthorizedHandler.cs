@@ -2,7 +2,7 @@
 
 namespace ElectronicsEshop.Blazor.Services.Auth;
 
-public sealed class UnauthorizedHandler(ClientSessionService clientSessionService) : DelegatingHandler
+public sealed class UnauthorizedHandler(IServiceProvider services) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
@@ -10,7 +10,8 @@ public sealed class UnauthorizedHandler(ClientSessionService clientSessionServic
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            await clientSessionService.ForceLogoutAsync("Přihlášení vypršelo. Přihlas se prosím znovu.", ct);
+            var session = services.GetRequiredService<ClientSessionService>();
+            await session.ForceLogoutAsync("Přihlášení vypršelo. Přihlas se prosím znovu.", ct);
         }
 
         return response;

@@ -100,4 +100,17 @@ public sealed class CartsService(HttpClient httpClient, CartState cartState, Mes
         var count = await response.Content.ReadFromJsonAsync<int>(ct);
         cartState.SetCount(count);
     }
+
+    public async Task SubmitOrderAsync(CancellationToken ct = default)
+    {
+        var response = await httpClient.PostAsync("api/cart/submit", null, ct);
+
+        if(!response.IsSuccessStatusCode)
+        {
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se vytvořit objednávku.");
+            throw new InvalidOperationException(message);
+        }
+
+        cartState.Clear();
+    }
 }

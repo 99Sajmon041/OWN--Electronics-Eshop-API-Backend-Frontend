@@ -184,7 +184,7 @@
 
                         <div class="card-footer">
                             <button class="btn btn-success w-100"
-                                    disabled="@isLoading"
+                                    disabled="@(isLoading || isBusy)"
                                     @onclick="SubmitCartAsync">
                                 Odeslat objednávku
                             </button>
@@ -196,10 +196,28 @@
     }
 </div>
 
+<ModalDialog IsOpen="@showPaymentModal"
+       Title="Zpracování platby"
+       IsBusy="true"
+       CancelText="Zavřít"
+       SaveText="OK"
+       OnCancel="ClosePaymentModal"
+       OnSave="ClosePaymentModal"
+       ShowActionButtons="false">
+    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status" aria-hidden="true"></div>
+        <div class="mt-3 fw-semibold">Zpracovávám platbu…</div>
+        <div class="text-muted small">Vyčkejte prosím, potvrzujeme objednávku.</div>
+    </div>
+</ModalDialog>
+
 @code {
     private CartModel model = new();
     private bool isLoading = true;
     private bool isBusy;
+
+    private bool showPaymentModal;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -263,10 +281,31 @@
         }
     }
 
-    private Task SubmitCartAsync()
+    private async Task SubmitCartAsync()
     {
-        MessageService.ShowError("Submit zatím není napojené.");
-        return Task.CompletedTask;
+        if (isBusy)
+            return;
+
+        isBusy = true;
+        showPaymentModal = true;
+
+        try
+        {
+            await Task.Delay(3000);
+
+            await CartService.SubmitOrderAsync();
+            Nav.NavigateTo("/orders");
+            MessageService.ShowSuccess("Objednávka byla úspěšně vytvořena. Více informací naleznete v e-mailu.");
+        }
+        catch(Exception ex)
+        {
+            MessageService.ShowError(ex.Message);
+        }
+        finally
+        {
+            showPaymentModal = false;
+            isBusy = false;
+        }
     }
 
     private async Task OnIncreaseAsync(int productId, string productName)
@@ -326,4 +365,14 @@
             isBusy = false;
         }
     }
+
+    private void ClosePaymentModal()
+    {
+        if (isBusy)
+            return;
+
+        showPaymentModal = false;
+    }
+
+
 }
