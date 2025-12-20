@@ -14,13 +14,13 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
 
     public async Task UpdatePaymentAsync(int paymentId, int orderId, DateTime updatedAt, CancellationToken ct)
     {
-        var paymentRecord = await FindPaymentByIdAsync(paymentId, ct);
-        if (paymentRecord is null)
+        var payment = await FindPaymentByIdAsync(paymentId, ct);
+        if (payment is null)
             return;
 
-        paymentRecord.OrderId = orderId;
-        paymentRecord.UpdatedAt = updatedAt;
-        db.Update(paymentRecord);
+        payment.OrderId = orderId;
+        payment.UpdatedAt = updatedAt;
+        db.Update(payment);
     }
 
     private async Task<Payment?> FindPaymentByIdAsync(int paymentId, CancellationToken ct)

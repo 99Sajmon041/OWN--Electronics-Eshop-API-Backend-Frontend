@@ -2,6 +2,7 @@
 
 @inject MessageService MessageService
 @inject IAuthService AuthService
+@inject UiState UiState
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -15,32 +16,43 @@
 
     <div class="mb-3">
         <label class="form-label">Email</label>
-        <InputText class="form-control" @bind-Value="model.Email" />
+        <InputText class="form-control" @bind-Value="model.Email" disabled="@isBusy" />
     </div>
 
     <div class="mb-3">
         <label class="form-label">Heslo</label>
-        <InputText class="form-control" type="password" @bind-Value="model.Password" />
+        <InputText class="form-control" type="password" @bind-Value="model.Password" disabled="@isBusy" />
     </div>
 
     <div class="form-check mb-3">
-        <InputCheckbox class="form-check-input" @bind-Value="model.RememberMe" />
+        <InputCheckbox class="form-check-input" @bind-Value="model.RememberMe" disabled="@isBusy" />
         <label class="form-check-label">Zapamatovat si mě</label>
     </div>
 
     <div class="form-label">
-        <a class="nav-link p-0 d-inline text-decoration-underline" style="text-underline-offset: 3px;" href="/forgot-password">
+        <a class="nav-link p-0 d-inline text-decoration-underline"
+           style="text-underline-offset: 3px;"
+           href="/forgot-password">
             Zapomenuté heslo
         </a>
     </div>
 
-
-
-    <button class="btn btn-primary" type="submit">Přihlásit</button>
+    <button class="btn btn-primary" type="submit" disabled="@isBusy">
+        @if (isBusy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <span>Přihlašuji…</span>
+        }
+        else
+        {
+            <span>Přihlásit</span>
+        }
+    </button>
 </EditForm>
 
 @code {
     private LoginModel model = new();
+    private bool isBusy;
 
     [SupplyParameterFromQuery(Name = "returnUrl")]
     [Parameter] public string? ReturnUrl { get; set; }
@@ -53,25 +65,39 @@
         {
             var target = GetSafeReturnUrl();
             MessageService.ShowInfo("Jste již přihlášen. Přesměrováno na požadovanou stránku.");
-
             Nav.NavigateTo(target);
         }
     }
 
     private async Task HandleValidSubmit()
     {
-        var result = await AuthService.LoginAsync(model);
+        if (isBusy)
+            return;
 
-        if (result.Success)
+        isBusy = true;
+        UiState.StartBusy("Přihlašuji…");
+
+
+        try
         {
-            MessageService.ShowSuccess("Úspěšně přihlášen.");
+            var result = await AuthService.LoginAsync(model);
 
-            var target = GetSafeReturnUrl();
-            Nav.NavigateTo(target);
+            if (result.Success)
+            {
+                MessageService.ShowSuccess("Úspěšně přihlášen.");
+
+                var target = GetSafeReturnUrl();
+                Nav.NavigateTo(target);
+            }
+            else
+            {
+                MessageService.ShowError(result.ErrorMessage ?? "Přihlášení se nezdařilo.");
+            }
         }
-        else
+        finally
         {
-            MessageService.ShowError(result.ErrorMessage ?? "Přihlášení se nezdařilo.");
+            UiState.StopBusy();
+            isBusy = false;
         }
     }
 

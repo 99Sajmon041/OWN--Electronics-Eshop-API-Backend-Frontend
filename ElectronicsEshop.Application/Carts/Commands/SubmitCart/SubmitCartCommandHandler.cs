@@ -18,6 +18,7 @@ public sealed class SubmitCartCommandHandler(
     IPaymentService paymentService,
     ICartItemRepository cartItemRepository,
     UserManager<ApplicationUser> userManager,
+    IEmailService emailService,
     IUnitOfWork unitOfWork) : IRequestHandler<SubmitCartCommand>
 {
     public async Task Handle(SubmitCartCommand request, CancellationToken cancellationToken)
@@ -82,14 +83,27 @@ public sealed class SubmitCartCommandHandler(
         order.OrderItems = orderItems;
 
         await orderRepository.CreateAsync(order, cancellationToken);
-
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         await paymentService.AssignOrderAsync(paymentResult.Payment!.Id, order.Id, cancellationToken);
 
         await cartItemRepository.DeleteAllForCurrentUserAsync(user.Id, cancellationToken);
-
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await emailService.SendOrderConfirmationEmailAsync(appUser, order, cancellationToken);
+
+            logger.LogInformation("E-mail s potvrzením objednávky {OrderId} byl odeslán na {Email}.", order.Id,  appUser.Email);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Nepodařilo se odeslat e-mail s potvrzením objednávky {OrderId} na {Email}. Objednávka zůstává vytvořená.", order.Id, appUser.Email);
+        }
 
         logger.LogInformation(
             "Objednávka {OrderId} byla úspěšně vytvořena a zaplacena. Uživatelské ID: {UserId}, PaymentId: {PaymentId}",

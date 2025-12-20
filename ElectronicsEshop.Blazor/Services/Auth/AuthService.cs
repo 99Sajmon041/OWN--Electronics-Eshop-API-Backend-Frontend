@@ -27,7 +27,7 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
             if (response.IsSuccessStatusCode)
             {
-                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(ct);
 
                 if (loginResponse is null || string.IsNullOrWhiteSpace(loginResponse.AccessToken))
                 {
@@ -42,11 +42,6 @@ namespace ElectronicsEshop.Blazor.Services.Auth
 
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResponse.AccessToken);
 
-                if (authStateProvider is ApiAuthenticationStateProvider apiAuth)
-                {
-                    await apiAuth.MarkUserAsAuthenticatedAsync();
-                }
-
                 try
                 {
                     await cartsService.DeleteAllItemsAsync(ct: ct);
@@ -54,7 +49,12 @@ namespace ElectronicsEshop.Blazor.Services.Auth
                 catch(Exception ex)
                 {
                     Console.WriteLine(ex);
-                    messageService.ShowError("Nepodařilo se správně načíst košík.");
+                    messageService.ShowError("Nepodařilo se správně načíst (vyčistit) košík.");
+                }
+
+                if (authStateProvider is ApiAuthenticationStateProvider apiAuth)
+                {
+                    await apiAuth.MarkUserAsAuthenticatedAsync();
                 }
 
                 return new RequestResult { Success = true };

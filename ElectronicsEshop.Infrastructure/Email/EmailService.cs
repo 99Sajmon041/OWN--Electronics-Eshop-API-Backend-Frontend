@@ -1,4 +1,5 @@
 ﻿using ElectronicsEshop.Application.Abstractions;
+using ElectronicsEshop.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -16,6 +17,7 @@ public sealed class EmailService : IEmailService
         _settings = options.Value;
         _logger = logger;
     }
+
     public async Task SendPasswordResetEmailAsync(string email, string userId, string token, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -58,7 +60,7 @@ public sealed class EmailService : IEmailService
 
         try
         {
-            _logger.LogInformation("Odesílám e-mail pro reset hesla na adresu {Email}.", email);
+            _logger.LogInformation("Odeslání e-maile pro reset hesla na adresu {Email}.", email);
 
             await SmtpClient.SendMailAsync(mailMessage, cancellationToken);
 
@@ -69,5 +71,70 @@ public sealed class EmailService : IEmailService
             _logger.LogError(ex, "Při odesílání e-mailu pro reset hesla na {Email} došlo k chybě.", email);
             throw;
         }
+    }
+
+    public async Task SendOrderConfirmationEmailAsync(ApplicationUser user, Order order, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var subject = $"Electronics E-shop – potvrzení objednávky č. {order.Id}";
+
+        var contentAddressBuilder = new StringBuilder();
+        contentAddressBuilder.AppendLine("Doručovací adresa:");
+        contentAddressBuilder.AppendLine($"{user.FullName}");
+        contentAddressBuilder.AppendLine($"{user.Address.Street} {user.Address.NumberOfHouse}");
+        contentAddressBuilder.AppendLine($"{user.Address.PostalCode}, {user.Address.Town}");
+        contentAddressBuilder.AppendLine();
+
+        var contentOrderBuilder = new StringBuilder();
+        contentOrderBuilder.AppendLine("Souhrn objednávky:");
+        contentOrderBuilder.AppendLine();
+
+        foreach (var item in order.OrderItems)
+        {
+            var lineTotal = item.UnitPrice * item.Quantity;
+            contentOrderBuilder.AppendLine($"- {item.Product.Name} | {item.Quantity}x | {lineTotal:0.00} Kč");
+        }
+
+        contentOrderBuilder.AppendLine();
+        contentOrderBuilder.AppendLine("-------------------------------------------------------");
+        contentOrderBuilder.AppendLine($"Celková cena: {order.TotalAmount:0.00} Kč");
+
+        var bodyBuilder = new StringBuilder();
+        bodyBuilder.AppendLine("Dobrý den,");
+        bodyBuilder.AppendLine();
+        bodyBuilder.AppendLine("děkujeme za Vaši objednávku v Electronics E-shopu.");
+        bodyBuilder.AppendLine();
+
+        var messageBuilder = new StringBuilder();
+        messageBuilder.Append(bodyBuilder);
+        messageBuilder.Append(contentAddressBuilder);
+        messageBuilder.Append(contentOrderBuilder);
+        messageBuilder.AppendLine();
+        messageBuilder.AppendLine();
+        messageBuilder.AppendLine("S pozdravem");
+        messageBuilder.AppendLine("Tým Electronics E-shop");
+
+        using var mailMessage = new MailMessage
+        {
+            From = new MailAddress(_settings.FromAddress, _settings.FromName),
+            Subject = subject,
+            Body = messageBuilder.ToString(),
+            IsBodyHtml = false,
+        };
+
+        mailMessage.To.Add(user.Email!);
+
+        using var smtpClient = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
+        {
+            EnableSsl = _settings.EnableSsl,
+            Credentials = new NetworkCredential(_settings.UserName, _settings.Password)
+        };
+
+        _logger.LogInformation("Odesílám e-mail s potvrzením objednávky {OrderId} na {Email}.", order.Id, user.Email);
+
+        await smtpClient.SendMailAsync(mailMessage, cancellationToken);
+
+        _logger.LogInformation("E-mail s potvrzením objednávky {OrderId} byl odeslán na {Email}.", order.Id, user.Email);
     }
 }

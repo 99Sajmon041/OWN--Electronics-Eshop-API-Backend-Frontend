@@ -9,6 +9,7 @@ using ElectronicsEshop.Blazor.Services.Products;
 using ElectronicsEshop.Blazor.Services.Roles;
 using ElectronicsEshop.Blazor.UI.Message;
 using ElectronicsEshop.Blazor.UI.State;
+using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -19,6 +20,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<UiState>();
 builder.Services.AddScoped<CartState>();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -160,12 +160,32 @@ code {
     top: 0;
     bottom: 0;
     left: 0;
-    width: 260px; /* uprav dle sebe */
+    width: 260px;
     overflow-y: auto;
-    background: #2b0033; /* tvoje fialová */
+    background: #2b0033;
 }
 
 .app-main {
-    margin-left: 260px; /* musí sedìt s šíøkou sidebaru */
+    margin-left: 260px;
     min-height: 100vh;
+}
+
+.busy-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.busy-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.75rem;
+    background: rgba(20,20,20,0.95);
+    color: white;
+    min-width: 240px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
