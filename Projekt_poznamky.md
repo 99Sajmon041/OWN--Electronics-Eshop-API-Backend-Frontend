@@ -1,6 +1,6 @@
--Udělat řehled plateb pro admina List<Payment> Razor + service
+-U Payment dle Enumu upravit stav platby: uspesna, neuspesna - EnumConverter
+-U Paymet udělat bílou tabulku místo černé
 -Formulář pro kontaktování společnosti - odešle se mail na simon9durak@gmai.com - udělat v zápatí
-
 
 
 User accounts:

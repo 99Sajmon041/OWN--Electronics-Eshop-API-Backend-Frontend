@@ -1,10 +1,11 @@
-using Blazored.LocalStorage;
+﻿using Blazored.LocalStorage;
 using ElectronicsEshop.Blazor;
 using ElectronicsEshop.Blazor.Services.ApplicationUsers;
 using ElectronicsEshop.Blazor.Services.Auth;
 using ElectronicsEshop.Blazor.Services.Carts;
 using ElectronicsEshop.Blazor.Services.Categories;
 using ElectronicsEshop.Blazor.Services.Orders;
+using ElectronicsEshop.Blazor.Services.Payments;
 using ElectronicsEshop.Blazor.Services.Products;
 using ElectronicsEshop.Blazor.Services.Roles;
 using ElectronicsEshop.Blazor.UI.Message;
@@ -13,6 +14,9 @@ using ElectronicsEshop.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -28,25 +32,31 @@ builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IApplicationUsersService, ApplicationUsersService>();
+builder.Services.AddScoped<IApplicationUsersAdminService, ApplicationUsersAdminService>();
 builder.Services.AddScoped<IRolesService, RolesService>();
 builder.Services.AddScoped<IOrderAdminService, OrderAdminService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IApplicationUsersAdminService, ApplicationUsersAdminService>();
 builder.Services.AddScoped<ICartsAdminService, CartsAdminService>();
 builder.Services.AddScoped<ICartsService, CartsService>();
+builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 
 builder.Services.AddScoped<TokenExpiryService>();
 builder.Services.AddScoped<ClientSessionService>();
 builder.Services.AddTransient<UnauthorizedHandler>();
 
+builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
+{
+    Converters = { new JsonStringEnumConverter() }
+});
+
 builder.Services.AddHttpClient("Api", client =>
 {
     client.BaseAddress = new Uri("https://localhost:7259");
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 })
 .AddHttpMessageHandler<UnauthorizedHandler>();
 
-builder.Services.AddScoped(sp =>
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Api"));
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();

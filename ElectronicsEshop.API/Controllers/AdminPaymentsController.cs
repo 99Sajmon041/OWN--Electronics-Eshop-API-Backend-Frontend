@@ -14,7 +14,7 @@ namespace ElectronicsEshop.API.Controllers
     public class AdminPaymentsController(IMediator mediator) : ControllerBase
     {
         [HttpGet]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status200OK, Type = typeof(PagedResult<PaymentDto>))]
+        [ProducesResponseType(typeof(PagedResult< PaymentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

@@ -10,6 +10,6 @@ public sealed class GetPaymentsQuery : IRequest<PagedResult<PaymentDto>>
     public int PageSize { get; set; } = 20;
     public string? UserId { get; set; }
     public int? OrderId { get; set; }
-    public DateTime? From { get; init; }
-    public DateTime? To { get; init; }
+    public DateTime? From { get; set; }
+    public DateTime? To { get; set; }
 }
