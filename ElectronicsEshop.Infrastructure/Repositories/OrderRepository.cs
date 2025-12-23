@@ -94,15 +94,9 @@ public sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id, ct);
     }
 
-    public Task UpdateOrderStatusAsync(int orderId, OrderStatus status, CancellationToken ct)
+    public void UpdateOrderStatus(Order order, OrderStatus status)
     {
-        ct.ThrowIfCancellationRequested();
-
-        var stub = new Order { Id = orderId };
-        db.Orders.Attach(stub);
-        stub.OrderStatus = status;
-        db.Entry(stub).Property(x => x.OrderStatus).IsModified = true;
-        return Task.CompletedTask;
+        order.OrderStatus = status;
     }
 
     public async Task<Order?> GetByIdAsync(int id, CancellationToken ct)

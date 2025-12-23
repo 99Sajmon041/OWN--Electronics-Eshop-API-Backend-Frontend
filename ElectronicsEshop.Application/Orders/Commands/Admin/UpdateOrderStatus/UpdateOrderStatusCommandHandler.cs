@@ -30,7 +30,7 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
 
         var newState = request.NewStatus;
 
-        await orderRepository.UpdateOrderStatusAsync(order.Id, newState, cancellationToken);
+        orderRepository.UpdateOrderStatus(order, newState);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         switch (newState)
@@ -63,7 +63,7 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
         //var orderState = newState switch
         //{
         //    OrderStatus.New => "Nová",
-        //    OrderStatus.Cancelled => "Zrušena",
+        //    OrderStatus.Canceled => "Zrušena",
         //    OrderStatus.Shipped => "Odeslána",
         //    OrderStatus.Completed => "Dokončena",
         //    OrderStatus.Paid => "Zaplacena",
@@ -74,7 +74,7 @@ public sealed class UpdateOrderStatusCommandHandler(ILogger<UpdateOrderStatusCom
 
         logger.LogInformation("Objednávka s ID: {OrderId} pro uživatele s E-Mailem: {UserEmail} byla upravena na stav: {OrderStatus}",
             order.Id,
-            order.ApplicationUser.Email,
+            order.ApplicationUser.Email ?? order.ApplicationUserId,
             orderState);
     }
 }

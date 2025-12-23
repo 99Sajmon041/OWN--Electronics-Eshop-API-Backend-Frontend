@@ -58,18 +58,12 @@
 
             <div class="col-md-1">
                 <label class="form-label">Od</label>
-                <input type="date"
-                       class="form-control form-control-sm"
-                       value="@(request.From?.ToString("yyyy-MM-dd"))"
-                       @onchange="OnFilteredDateFrom" />
+                <input type="date" class="form-control form-control-sm" value="@(request.From?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateFrom" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">Do</label>
-                <input type="date"
-                       class="form-control form-control-sm"
-                       value="@(request.To?.ToString("yyyy-MM-dd"))"
-                       @onchange="OnFilteredDateTo" />
+                <input type="date" class="form-control form-control-sm" value="@(request.To?.ToString("yyyy-MM-dd"))" @onchange="OnFilteredDateTo" />
             </div>
 
         </div>
@@ -124,7 +118,7 @@ else
                     <td>@order.ItemsCount</td>
                     <td>@order.TotalAmount.ToString("N2") Kč</td>
                     <td>
-                        <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(order.OrderStatus)">
+                        <span class="badge rounded-pill @EnumsHelper.GetStatusBadgeClass(order.OrderStatus)">
                             @statuses[order.OrderStatus]
                         </span>
                     </td>
@@ -193,7 +187,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        statuses = OrderStatusHelper.StatusLabels();
+        statuses = EnumsHelper.StatusLabels();
 
         var today = DateOnly.FromDateTime(DateTime.Today);
         request.To = today;

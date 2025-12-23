@@ -16,42 +16,48 @@
     <div class="card-body">
         <div class="row g-2 align-items-end">
             <div class="col-12 col-md-3">
-                <label class="form-label">UserId</label>
-                <input class="form-control" @bind="request.UserId" @bind:event="oninput" placeholder="např. Identity UserId" />
+                <label class="form-label">ID uživatele</label>
+                <input class="form-control"
+                       value="@request.UserId"
+                       @oninput="OnUserIdChanged"
+                       @onkeydown="OnFilteredKeyDownUserId"
+                       placeholder="ID uživatele..." />
             </div>
 
             <div class="col-12 col-md-2">
-                <label class="form-label">OrderId</label>
-                <input class="form-control" type="number" @bind="orderIdInput" placeholder="např. 123" />
+                <label class="form-label">ID objednávky</label>
+                <input class="form-control"
+                       type="number"
+                       value="@(request.OrderId?.ToString() ?? string.Empty)"
+                       @oninput="OnOrderIdChanged"
+                       @onkeydown="OnFilteredKeyDownOrderId"
+                       placeholder="např. 123" />
             </div>
 
             <div class="col-12 col-md-2">
                 <label class="form-label">Od</label>
-                <input class="form-control" type="date" @bind="fromInput" />
+                <input class="form-control"
+                       type="date"
+                       value="@(request.From?.ToString("yyyy-MM-dd"))"
+                       @onchange="OnFilteredDateFrom" />
             </div>
 
             <div class="col-12 col-md-2">
                 <label class="form-label">Do</label>
-                <input class="form-control" type="date" @bind="toInput" />
+                <input class="form-control"
+                       type="date"
+                       value="@(request.To?.ToString("yyyy-MM-dd"))"
+                       @onchange="OnFilteredDateTo" />
             </div>
 
             <div class="col-12 col-md-1">
-                <label class="form-label">PageSize</label>
-                <select class="form-select" @bind="request.PageSize">
+                <label class="form-label">Velikost stránky</label>
+                <select class="form-select" value="@request.PageSize" @onchange="OnPageSizeChanged">
                     <option value="10">10</option>
                     <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
-            </div>
-
-            <div class="col-12 col-md-2 d-flex gap-2">
-                <button class="btn btn-primary w-100" @onclick="ApplyFiltersAsync" disabled="@isLoading">
-                    Hledat
-                </button>
-                <button class="btn btn-outline-secondary w-100" @onclick="ResetFiltersAsync" disabled="@isLoading">
-                    Reset
-                </button>
             </div>
         </div>
     </div>
@@ -70,17 +76,17 @@ else if (payments is null || payments.Items is null || payments.Items.Count == 0
 else
 {
     <div class="table-responsive">
-        <table class="table table-dark table-striped table-hover align-middle">
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
-                    <th style="white-space:nowrap;">ID</th>
-                    <th style="white-space:nowrap;">UserId</th>
-                    <th style="white-space:nowrap;">OrderId</th>
-                    <th style="white-space:nowrap;">Amount</th>
+                    <th style="white-space:nowrap;">ID platby</th>
+                    <th style="white-space:nowrap;">ID uživatele</th>
+                    <th style="white-space:nowrap;">ID objednávky</th>
+                    <th style="white-space:nowrap;">Částka</th>
                     <th style="white-space:nowrap;">Status</th>
-                    <th style="white-space:nowrap;">Created</th>
-                    <th style="white-space:nowrap;">Updated</th>
-                    <th style="white-space:nowrap;">Error</th>
+                    <th style="white-space:nowrap;">Vytvořeno</th>
+                    <th style="white-space:nowrap;">Upraveno</th>
+                    <th style="white-space:nowrap;">Chybová hláška</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,7 +97,7 @@ else
                         <td style="max-width:280px; overflow:hidden; text-overflow:ellipsis;">@p.UserId</td>
                         <td>@(p.OrderId?.ToString() ?? "-")</td>
                         <td>@FormatMoney(p.Amount)</td>
-                        <td>@p.Status</td>
+                        <td>@EnumsHelper.GetCzechPaymentStatusName(p.Status)</td>
                         <td>@FormatDateTime(p.CreatedAt)</td>
                         <td>@(p.UpdatedAt.HasValue? FormatDateTime(p.UpdatedAt.Value) : "-")</td>
                         <td style="max-width:380px; overflow:hidden; text-overflow:ellipsis;">
@@ -106,7 +112,7 @@ else
 
 <div class="d-flex align-items-center justify-content-between mt-3">
     <div class="text-muted">
-        Celkem: <strong>@payments?.TotalCount</strong>,
+        Celkem: <strong>@(payments?.TotalCount ?? 0)</strong>,
         Strana: <strong>@request.Page</strong>/<strong>@totalPages</strong>
     </div>
 
@@ -121,12 +127,7 @@ else
 @code {
     private PaymentRequest request = new();
     private PagedResult<PaymentModel> payments = new() { Items = [], TotalCount = 0, Page = 1, PageSize = 20 };
-
     private bool isLoading;
-
-    private int? orderIdInput;
-    private DateTime? fromInput;
-    private DateTime? toInput;
 
     private int totalPages => Math.Max(1, (int)Math.Ceiling((double)(payments?.TotalCount ?? 0) / Math.Max(1, request.PageSize)));
     private bool canGoPrevious => request.Page > 1;
@@ -134,41 +135,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        orderIdInput = request.OrderId;
-        fromInput = request.From;
-        toInput = request.To;
+        var today = DateTime.Today;
+        request.From = today.AddYears(-1);
+        request.To = today;
 
-        await LoadPaymentsAsync();
-    }
-
-    private async Task ApplyFiltersAsync()
-    {
-        if (fromInput.HasValue && toInput.HasValue && toInput.Value.Date < fromInput.Value.Date)
-        {
-            MessageService.ShowError("Datum 'Do' musí být větší nebo rovno datu 'Od'.");
-            return;
-        }
-
-        request.OrderId = orderIdInput;
-        request.From = fromInput?.Date;
-        request.To = toInput?.Date;
-
-        request.Page = 1; 
-        await LoadPaymentsAsync();
-    }
-
-    private async Task ResetFiltersAsync()
-    {
-        request = new PaymentRequest
-        {
-            Page = 1,
-            PageSize = request.PageSize
-        };
-
-        orderIdInput = null;
-        fromInput = null;
-        toInput = null;
-
+        request.Page = 1;
         await LoadPaymentsAsync();
     }
 
@@ -181,12 +152,24 @@ else
             payments = await PaymentsService.GetAllAsync(request);
 
             if (payments is null)
-                payments = new PagedResult<PaymentModel> { Items = [], TotalCount = 0, Page = request.Page, PageSize = request.PageSize };
+                payments = new PagedResult<PaymentModel>
+                {
+                    Items = [],
+                    TotalCount = 0,
+                    Page = request.Page,
+                    PageSize = request.PageSize
+                };
         }
         catch (Exception ex)
         {
             MessageService.ShowError(ex.Message);
-            payments = new PagedResult<PaymentModel> { Items = [], TotalCount = 0, Page = request.Page, PageSize = request.PageSize };
+            payments = new PagedResult<PaymentModel>
+            {
+                Items = [],
+                TotalCount = 0,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
         finally
         {
@@ -223,12 +206,128 @@ else
     }
 
     private static string FormatDateTime(DateTime dt)
-    {
-        return dt.ToString("dd.MM.yyyy HH:mm", CultureInfo.GetCultureInfo("cs-CZ"));
-    }
+        => dt.ToString("dd.MM.yyyy HH:mm", CultureInfo.GetCultureInfo("cs-CZ"));
 
     private static string FormatMoney(decimal amount)
+        => amount.ToString("N2", CultureInfo.GetCultureInfo("cs-CZ"));
+
+    private async Task OnUserIdChanged(ChangeEventArgs e)
     {
-        return amount.ToString("N2", CultureInfo.GetCultureInfo("cs-CZ"));
+        request.UserId = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(request.UserId))
+            request.UserId = null;
+
+        request.Page = 1;
+        await LoadPaymentsAsync();
+    }
+
+    private async Task OnFilteredKeyDownUserId(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            request.UserId = null;
+            request.Page = 1;
+            await LoadPaymentsAsync();
+        }
+    }
+
+    private async Task OnOrderIdChanged(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            request.OrderId = null;
+            request.Page = 1;
+            await LoadPaymentsAsync();
+            return;
+        }
+
+        if (!int.TryParse(raw, out var orderId))
+            return;
+
+        request.OrderId = orderId;
+        request.Page = 1;
+        await LoadPaymentsAsync();
+    }
+
+    private async Task OnFilteredKeyDownOrderId(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            request.OrderId = null;
+            request.Page = 1;
+            await LoadPaymentsAsync();
+        }
+    }
+
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var pageSize))
+            request.PageSize = pageSize;
+        else
+            request.PageSize = 10;
+
+        request.Page = 1;
+        await LoadPaymentsAsync();
+    }
+
+    private async Task OnFilteredDateFrom(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            request.From = null;
+            request.Page = 1;
+            await LoadPaymentsAsync();
+            return;
+        }
+
+        if (!DateTime.TryParseExact(raw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var newFrom))
+        {
+            MessageService.ShowError("Neplatné datum 'Od'.");
+            return;
+        }
+
+        if (request.To.HasValue && newFrom.Date > request.To.Value.Date)
+        {
+            MessageService.ShowError("Datum 'Od' nesmí být větší než datum 'Do'.");
+            return;
+        }
+
+        request.From = newFrom.Date;
+        request.Page = 1;
+        await LoadPaymentsAsync();
+    }
+
+    private async Task OnFilteredDateTo(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            request.To = null;
+            request.Page = 1;
+            await LoadPaymentsAsync();
+            return;
+        }
+
+        if (!DateTime.TryParseExact(raw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var newTo))
+        {
+            MessageService.ShowError("Neplatné datum 'Do'.");
+            return;
+        }
+
+        if (request.From.HasValue && newTo.Date < request.From.Value.Date)
+        {
+            MessageService.ShowError("Datum 'Do' nesmí být menší než datum 'Od'.");
+            return;
+        }
+
+        request.To = newTo.Date;
+        request.Page = 1;
+        await LoadPaymentsAsync();
     }
 }

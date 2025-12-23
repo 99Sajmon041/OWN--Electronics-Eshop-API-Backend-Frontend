@@ -67,7 +67,7 @@ public sealed class OrderAdminService(HttpClient httpClient) : IOrderAdminServic
 
         if(!response.IsSuccessStatusCode)
         {
-            var message = await response.ReadProblemMessageAsync("Nepodařilo se urpavit stav objednávky.");
+            var message = await response.ReadProblemMessageAsync("Nepodařilo se upravit stav objednávky.");
             throw new InvalidOperationException(message);
         }
     }

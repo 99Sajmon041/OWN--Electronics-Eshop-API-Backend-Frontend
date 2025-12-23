@@ -18,8 +18,8 @@ else
 {
     <div class="mb-3" style="max-width: 700px; margin: 0 auto; text-align: center;">
         <h3 class="mb-1">Detail objednávky #@model.Id</h3>
-        <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(model.OrderStatus)">
-            @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+        <span class="badge rounded-pill @EnumsHelper.GetStatusBadgeClass(model.OrderStatus)">
+            @EnumsHelper.GetCzechOrderStatusName(model.OrderStatus)
         </span>
     </div>
 
@@ -49,7 +49,7 @@ else
             <div class="row detail-row py-2">
                 <div class="col-5 fw-bold">Stav objednávky</div>
                 <div class="col-7">
-                    @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+                    @EnumsHelper.GetCzechOrderStatusName(model.OrderStatus)
                 </div>
             </div>
 

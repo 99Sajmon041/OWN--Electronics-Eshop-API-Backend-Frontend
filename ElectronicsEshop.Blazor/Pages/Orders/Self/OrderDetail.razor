@@ -35,8 +35,8 @@ else
             </div>
 
             <div class="mt-2">
-                <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(model.OrderStatus)">
-                    @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+                <span class="badge rounded-pill @EnumsHelper.GetStatusBadgeClass(model.OrderStatus)">
+                    @EnumsHelper.GetCzechOrderStatusName(model.OrderStatus)
                 </span>
 
                 <span class="badge bg-light text-muted border ms-1">
@@ -68,8 +68,8 @@ else
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="fw-semibold text-dark">Stav</div>
-                    <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(model.OrderStatus)">
-                        @OrderStatusHelper.GetCzechOrderStatusName(model.OrderStatus)
+                    <span class="badge rounded-pill @EnumsHelper.GetStatusBadgeClass(model.OrderStatus)">
+                        @EnumsHelper.GetCzechOrderStatusName(model.OrderStatus)
                     </span>
                 </div>
                 <div class="col-md-4 mb-2">

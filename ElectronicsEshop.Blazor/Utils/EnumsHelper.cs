@@ -2,7 +2,7 @@
 
 namespace ElectronicsEshop.Blazor.Utils;
 
-public static class OrderStatusHelper
+public static class EnumsHelper
 {
     public static Dictionary<OrderStatus, string> StatusLabels()
     {
@@ -39,6 +39,16 @@ public static class OrderStatusHelper
             OrderStatus.Completed => "bg-success",
             OrderStatus.Canceled => "bg-danger",
             _ => "bg-secondary"
+        };
+    }
+
+    public static string GetCzechPaymentStatusName(PaymentStatus status)
+    {
+        return status switch
+        {
+            PaymentStatus.Succeeded => "Úspěšný",
+            PaymentStatus.Failed => "Neúspěšný",
+            _ => "Neznámý"
         };
     }
 }

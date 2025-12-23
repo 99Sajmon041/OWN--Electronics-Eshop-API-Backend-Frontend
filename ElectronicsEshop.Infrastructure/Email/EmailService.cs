@@ -137,4 +137,53 @@ public sealed class EmailService : IEmailService
 
         _logger.LogInformation("E-mail s potvrzením objednávky {OrderId} byl odeslán na {Email}.", order.Id, user.Email);
     }
+
+    public async Task SendContactMessageAsync(string? userId, string replyEmail, string subject, string message, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        replyEmail = (replyEmail ?? string.Empty).Trim();
+        subject = (subject ?? string.Empty).Trim();
+        message = (message ?? string.Empty).Trim();
+
+        var contentBuilder = new StringBuilder();
+
+        contentBuilder.AppendLine("Dotaz prostřednictvím webového formuláře - ElectronicsEshop");
+        contentBuilder.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(userId))
+            contentBuilder.AppendLine($"Uživatel (UserId): {userId}");
+
+        contentBuilder.AppendLine($"Reply-To: {replyEmail}");
+        contentBuilder.AppendLine();
+        contentBuilder.AppendLine("Předmět:");
+        contentBuilder.AppendLine(subject);
+        contentBuilder.AppendLine();
+        contentBuilder.AppendLine("Zpráva:");
+        contentBuilder.AppendLine(message);
+        contentBuilder.AppendLine();
+
+        using var mailMessage = new MailMessage
+        {
+            From = new MailAddress(_settings.FromAddress, _settings.FromName),
+            Subject = $"Kontakt: {subject}",
+            Body = contentBuilder.ToString(),
+            IsBodyHtml = false
+        };
+
+        mailMessage.To.Add(_settings.FromAddress);
+
+        mailMessage.ReplyToList.Clear();
+        mailMessage.ReplyToList.Add(new MailAddress(replyEmail));
+
+        using var smtpClient = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
+        {
+            EnableSsl = _settings.EnableSsl,
+            Credentials = new NetworkCredential(_settings.UserName, _settings.Password)
+        };
+
+        await smtpClient.SendMailAsync(mailMessage, cancellationToken);
+
+        _logger.LogInformation("Kontaktní formulář: email odeslán. UserId={UserId}, ReplyEmail={ReplyEmail}", userId, replyEmail);
+    }
 }

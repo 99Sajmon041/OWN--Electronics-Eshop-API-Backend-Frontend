@@ -31,24 +31,34 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
     public async Task<(IReadOnlyList<Payment> payments, int totalCount)> GetPagedAsync(int page, int pageSize, string? userId, int? orderId, DateTime? from, DateTime? to, CancellationToken ct)
     {
         var query = db.Payments
-            .AsNoTracking()
-            .Include(p => p.User)
-            .Include(p => p.Order)
-            .AsQueryable();
+               .AsNoTracking()
+               .AsQueryable();
 
-        if (!string.IsNullOrEmpty(userId))
-            query = query.Where(p => p.UserId == userId);
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            var trimmed = userId.Trim();
 
-        if (orderId is not null)
-            query = query.Where(p => p.OrderId == orderId);
+            query = trimmed.Length >= 32
+                ? query.Where(p => p.UserId == trimmed)
+                : query.Where(p => p.UserId.StartsWith(trimmed));
+        }
 
-        if(from is not null)
-            query = query.Where(p => p.CreatedAt >= from.Value);
+        if (orderId.HasValue)
+            query = query.Where(p => p.OrderId == orderId.Value);
 
-        if (to is not null)
-            query = query.Where(p => p.CreatedAt <= to.Value);
+        if (from.HasValue)
+        {
+            var fromDate = from.Value.Date;
+            query = query.Where(p => p.CreatedAt >= fromDate);
+        }
 
-        var itemsCount = await query.CountAsync(ct);
+        if (to.HasValue)
+        {
+            var toExclusive = to.Value.Date.AddDays(1);
+            query = query.Where(p => p.CreatedAt < toExclusive);
+        }
+
+        var totalCount = await query.CountAsync(ct);
 
         var items = await query
             .OrderByDescending(p => p.CreatedAt)
@@ -56,6 +66,6 @@ public sealed class PaymentRepository(AppDbContext db) : IPaymentRepository
             .Take(pageSize)
             .ToListAsync(ct);
 
-        return (items, itemsCount);
+        return (items, totalCount);
     }
 }

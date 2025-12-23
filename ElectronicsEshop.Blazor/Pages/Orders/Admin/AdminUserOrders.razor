@@ -86,7 +86,7 @@ else
                     <td>@order.ItemsCount</td>
                     <td>@order.TotalAmount.ToString("N2") Kč</td>
                     <td>
-                        <span class="badge rounded-pill @OrderStatusHelper.GetStatusBadgeClass(order.OrderStatus)">
+                        <span class="badge rounded-pill @EnumsHelper.GetStatusBadgeClass(order.OrderStatus)">
                             @statuses[order.OrderStatus]
                         </span>
                     </td>
@@ -128,7 +128,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        statuses = OrderStatusHelper.StatusLabels();
+        statuses = EnumsHelper.StatusLabels();
 
         var today = DateOnly.FromDateTime(DateTime.Today);
         request.To = today;
