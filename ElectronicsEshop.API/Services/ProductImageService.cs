@@ -2,23 +2,16 @@
 
 namespace ElectronicsEshop.API.Services;
 
-public sealed class ProductImageService : IProductImageService
+public sealed class ProductImageService(IWebHostEnvironment env, ILogger<ProductImageService> logger) : IProductImageService
 {
-    private readonly IWebHostEnvironment _env;
     private const string ProductsFolder = "images/products";
-    private readonly ILogger<ProductImageService> _logger;
 
-    public ProductImageService(IWebHostEnvironment env, ILogger<ProductImageService> logger)
-    {
-        _env = env;
-        _logger = logger;
-    }
     public async Task<string> SaveImageAsync(IFormFile image, CancellationToken ct)
     {
         if (image is null || image.Length == 0)
             throw new ArgumentException("Soubor s obrázkem je prázdný.", nameof(image));
 
-        var uploadsRootFolder = Path.Combine(_env.WebRootPath, ProductsFolder);
+        var uploadsRootFolder = Path.Combine(env.WebRootPath, ProductsFolder);
         Directory.CreateDirectory(uploadsRootFolder);
 
         var ext = Path.GetExtension(image.FileName);
@@ -41,9 +34,7 @@ public sealed class ProductImageService : IProductImageService
 
         try
         {
-            var fullPath = Path.Combine(
-                _env.WebRootPath,
-                imageUrl.Replace('/', Path.DirectorySeparatorChar));
+            var fullPath = Path.Combine(env.WebRootPath, imageUrl.Replace('/', Path.DirectorySeparatorChar));
 
             if (File.Exists(fullPath))
             {
@@ -52,7 +43,7 @@ public sealed class ProductImageService : IProductImageService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Nepodařilo se smazat obrázek {ImageUrl}", imageUrl);
+            logger.LogWarning(ex, "Nepodařilo se smazat obrázek {ImageUrl}", imageUrl);
         }
 
         return Task.CompletedTask;

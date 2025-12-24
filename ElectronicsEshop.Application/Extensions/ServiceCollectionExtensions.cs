@@ -1,11 +1,10 @@
-﻿using ElectronicsEshop.Application.Abstractions;
-using ElectronicsEshop.Application.Behaviors;
+﻿using ElectronicsEshop.Application.Behaviors;
 using ElectronicsEshop.Application.User;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ElectronicsEshop.Application.Orders.Extensions;
+namespace ElectronicsEshop.Application.Extensions;
 
 public static class ServiceCollectionExtensions
 {

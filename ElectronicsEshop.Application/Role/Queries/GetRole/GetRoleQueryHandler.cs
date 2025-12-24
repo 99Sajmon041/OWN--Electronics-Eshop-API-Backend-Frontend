@@ -1,14 +1,13 @@
 ﻿using ElectronicsEshop.Application.Exceptions;
 using ElectronicsEshop.Domain.Entities;
-using ElectronicsEshop.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace ElectronicsEshop.Application.Role.Queries.GetRole;
 
-public sealed class GetRoleQueryHandler
-    (ILogger<GetRoleQueryHandler> logger,
+public sealed class GetRoleQueryHandler(
+    ILogger<GetRoleQueryHandler> logger,
     UserManager<ApplicationUser> userManager) : IRequestHandler<GetRoleQuery, string>
 {
     public async Task<string> Handle(GetRoleQuery request, CancellationToken cancellationToken)
